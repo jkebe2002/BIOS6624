@@ -1,0 +1,115 @@
+---
+title: "Project 0"
+author: "Jacob Kebe"
+output: pdf_document
+documentclass: article
+geometry: margin=1in
+fontsize: 12pt
+linestretch: 2
+header-includes:
+  - \usepackage{setspace}
+  - \doublespacing
+  - \usepackage{multirow}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{dcolumn}
+  - \usepackage{fvextra}
+  - \usepackage{bm}
+---
+
+# Introduction
+
+Cortisol measurements spike after waking then decrease over time. 
+
+```{r c1}
+#load data
+cortdat <- read.csv("~/Downloads/Project0_Clean_v2.csv")
+
+#load packages
+library(naniar)
+library(tidyr)
+library(dplyr)
+library(olsrr)
+
+#fill in reported wake time for all rows.
+cortdat <- cortdat %>%
+  mutate(Sleep.Diary.reported.wake.time = na_if(Sleep.Diary.reported.wake.time, "")) %>%
+  fill(Sleep.Diary.reported.wake.time, .direction="down")
+
+##Calcute time since waking 
+  #1. convert time variables to POSIXct so we can take differences
+  
+cortdat$timeBook <- as.POSIXct(cortdat$Booket..Clock.Time, format="%H:%M")
+cortdat$timeMEM <- as.POSIXct(cortdat$MEMs..Clock.Time, format="%H:%M")
+cortdat$timeWake <- as.POSIXct(cortdat$Sleep.Diary.reported.wake.time, format="%H:%M")
+
+  #2. minutes since waking up for MEM and Booklet
+cortdat$minWakeMEM <- as.numeric(difftime(cortdat$timeMEM,cortdat$timeWake, units="mins"))
+cortdat$minWakeBook <- as.numeric(difftime(cortdat$timeBook,cortdat$timeWake, units="mins"))
+
+#Booklet time minus MEM time
+cortdat$disc <- as.numeric(difftime(cortdat$timeBook,cortdat$timeMEM, units="mins"))
+
+#replace "" and 9999 with NA
+cortdat <- cortdat %>%
+  mutate(Booket..Clock.Time = na_if(Booket..Clock.Time, "")) %>%
+  mutate(MEMs..Clock.Time = na_if(MEMs..Clock.Time, ""))  
+  
+#replace impossible cortisol and DHEA levels with missing to remove outliers.
+is.na(cortdat$Cortisol..nmol.L.) <- cortdat$Cortisol..nmol.L. >= 80
+is.na(cortdat$DHEA..nmol.L.) <- cortdat$DHEA..nmol.L. >= 5.205
+
+```
+
+```{r question1}
+#Q1: Use linear mixed effect regression to regress Booklet time since waking on MEM time since waking.
+mod1 <- lmerTest::lmer(minWakeMEM ~ minWakeBook + (1|SubjectID),data=cortdat)
+summary(mod1)
+```
+
+```{r question2}
+#Q2: Proportions of adherence
+
+cortdat$idealSampleTime <- ifelse(cortdat$Collection.Sample == 1 | cortdat$Collection.Sample == 3, cortdat$minWakeBook, ifelse(cortdat$Collection.Sample==4, 600, 30) )
+
+#1 if difference between booklet recorded time and ideal time is less than 7.5 minutes
+cortdat$adherence7.5 <- ifelse(abs(cortdat$minWakeBook-cortdat$idealSampleTime)<=7.5, 1,0)
+cortdat$adherence15 <- ifelse(abs(cortdat$minWakeBook-cortdat$idealSampleTime)<=15, 1,0)
+
+#Filter only Collection Samples 2,4 (30m since wake, 600m since wake)
+
+cortdatq2 <- cortdat[cortdat$Collection.Sample == 2 | cortdat$Collection.Sample == 4,]
+x7.5 <- sum(!is.na(cortdatq2$adherence7.5))
+x15  <- sum(!is.na(cortdatq2$adherence15))
+y <- length(cortdatq2$SubjectID)
+prop7.5 <- prop.test(x7.5,y)
+prop15  <- prop.test(x15,y)
+
+```
+
+```{r question3}
+#Q3 piecewise linear regression of Cortisol
+
+cortdat0<-cortdat[cortdat$minWakeBook<=30,]
+cortdat1<-cortdat[cortdat$minWakeBook>30,]
+
+modknot1 <- lm((Cortisol..nmol.L.)~ minWakeBook, data=cortdat0)
+modknot2 <- lm((Cortisol..nmol.L.)~ minWakeBook, data=cortdat1)
+
+ols_plot_resid_qq(modknot1)
+ols_plot_resid_qq(modknot2)
+
+ols_plot_resid_fit(modknot1)
+ols_plot_resid_fit(modknot2)
+
+#residual plots show that using the log of cortisol is better!
+
+
+library(lme4)
+library(splines)
+
+q3_mod <- lmer(log(Cortisol..nmol.L.)~bs(minWakeBook, knots=c(30), degree=1)+(1|SubjectID),
+               data=cortdat)
+summary(q3_mod)
+
+```
