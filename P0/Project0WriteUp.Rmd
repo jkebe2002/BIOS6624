@@ -17,9 +17,7 @@ header-includes:
   - \usepackage{bm}
 ---
 
-# Introduction
 
-Cortisol measurements spike after waking then decrease over time. 
 
 ```{r c1}
 #load data
@@ -34,8 +32,9 @@ library(olsrr)
 #fill in reported wake time for all rows.
 cortdat <- cortdat %>%
   mutate(Sleep.Diary.reported.wake.time = na_if(Sleep.Diary.reported.wake.time, "")) %>%
-  fill(Sleep.Diary.reported.wake.time, .direction="down")
-
+  group_by(SubjectID, Collection.Date) %>%
+  arrange(Collection.Sample, by_group=TRUE) %>%
+  fill(Sleep.Diary.reported.wake.time, .direction="down") %>% ungroup()
 ##Calcute time since waking 
   #1. convert time variables to POSIXct so we can take differences
   
@@ -69,22 +68,28 @@ summary(mod1)
 
 ```{r question2}
 #Q2: Proportions of adherence
+#Filter only Collection Samples 2,4 (30m since wake, 600m since wake)
+cortdatq2 <- cortdat[(cortdat$Collection.Sample == 2 | cortdat$Collection.Sample == 4),]
 
-cortdat$idealSampleTime <- ifelse(cortdat$Collection.Sample == 1 | cortdat$Collection.Sample == 3, cortdat$minWakeBook, ifelse(cortdat$Collection.Sample==4, 600, 30) )
+cortdatq2$idealSampleTime <- ifelse(cortdatq2$Collection.Sample==4, 600, ifelse(cortdatq2$Collection.Sample==2, 30, NA))
 
 #1 if difference between booklet recorded time and ideal time is less than 7.5 minutes
-cortdat$adherence7.5 <- ifelse(abs(cortdat$minWakeBook-cortdat$idealSampleTime)<=7.5, 1,0)
-cortdat$adherence15 <- ifelse(abs(cortdat$minWakeBook-cortdat$idealSampleTime)<=15, 1,0)
+cortdatq2$adherence7.5book <- ifelse(abs(cortdatq2$minWakeBook-cortdatq2$idealSampleTime)<=7.5, 1,0)
+cortdatq2$adherence15book <- ifelse(abs(cortdatq2$minWakeBook-cortdatq2$idealSampleTime)<=15, 1,0)
 
-#Filter only Collection Samples 2,4 (30m since wake, 600m since wake)
 
-cortdatq2 <- cortdat[cortdat$Collection.Sample == 2 | cortdat$Collection.Sample == 4,]
-x7.5 <- sum(!is.na(cortdatq2$adherence7.5))
-x15  <- sum(!is.na(cortdatq2$adherence15))
+cortdatq2$adherence7.5MEM <- ifelse(abs(cortdatq2$minWakeMEM-cortdatq2$idealSampleTime)<=7.5, 1,0)
+cortdatq2$adherence15MEM <- ifelse(abs(cortdatq2$minWakeMEM-cortdatq2$idealSampleTime)<=15, 1,0)
+
+
+
+x7.5book <- sum((cortdatq2$adherence7.5book), na.rm=TRUE)
+x15book  <- sum((cortdatq2$adherence15book),na.rm=TRUE)
 y <- length(cortdatq2$SubjectID)
-prop7.5 <- prop.test(x7.5,y)
-prop15  <- prop.test(x15,y)
-
+#prop7.5 <- prop.test(x7.5,y)
+#prop15  <- prop.test(x15,y)
+x7.5MEM <- sum((cortdatq2$adherence7.5MEM), na.rm=TRUE)
+x15MEM  <- sum((cortdatq2$adherence15MEM),na.rm=TRUE)
 ```
 
 ```{r question3}
@@ -112,4 +117,41 @@ q3_mod <- lmer(log(Cortisol..nmol.L.)~bs(minWakeBook, knots=c(30), degree=1)+(1|
                data=cortdat)
 summary(q3_mod)
 
+```
+
+# Introduction
+
+This analysis concerns a dataset of cortisol and DHEA levels measured over the course of the day using a saliva capturing method. Participants took samples over the course of 3 days, and were instructed to collect samples at waking, before lunch, and 30 and 600 minutes after waking. We have data on Subject IDs, collection date and sample number, cortisol and DHEA (nmol/L), sample time and wake time recorded by participant in booklet, and sample time recorded by an electronic cap in the saliva collection interface. We are interested in testing 3 hypotheses. First we are interested in the agreement between times recorded in the booklet and times recorded by the electronic cap, and whether there is a bias in the booklet times. Statistically, we are interested in whether the slope of the relationship between the times is significantly different than 1, and whether the mean difference is significantly different than 0. We are also interested in what proportion of samples fall within a 15 minute and 30 minute window around the 30 minutes and 600 minutes since waking marks. Finally, we want to study the change in cortisol and DHEA over time. The clinical hypothesis is that cortisol levels spike and peak 30 minutes after waking and decrease for the rest of the day. We are interested in whether the slope of the relationship between cortisol and time is significantly different before and after the 30 minute mark.
+
+# Methods
+
+Data was processed in the following ways. Variables for minutes since waking recorded by booklet and cap were calulated using the provided times ('minWakeBook' and 'minWakeMEM', respectively). Data input as an empty string, and cortisol and DHEA outliers (anything greater than or equal to 80 for cortisol or 5.205 for DHEA in nmol/L) were all replaced by NAs in order to properly call functions necessary for the analysis. A second dataset only including observations for collection samples 2 and 4 (30 min and 600 min since waking) was created to answer the second research question.
+
+To analyze the agreement between booklet times and cap times, we conducted linear mixed effect regression with cap times as a function of booklet times, accounting for a random intercept for each subject. Using a mixed effect model accounted for the within subject variation due to each subject having measurements over several days. We tested both the intercept and slope of the model as evidence of bias and agreement (or lack thereof) in the model.
+
+We calculated the proportion of samples whose recorded cap time was within the 15 minute window and 30 minute window of the ideal minutes since waking. We also calculated this proportion for the booklet times.
+
+For the third research question, a linear model of cortisol as a function of minutes since waking was proposed. Violation of linear regression assumptions was assessed since cortisol is a nonnegative right-skewed variable. We found that both residual plots and quantile plots were more indicative of adherence to assumptions when cortisol was log-transformed. Similarly, we log transformed DHEA. For cortisol, we used a piecewise linear mixed effect regression model with a knot at 30 minutes, allowing for the slope of the relationship between cortisol and time to differ before and after the 30 minute mark, and adjusting for the repeated measures for each subject with a random intercept. We were interested in the coefficients for the time variable before and after 30 minutes. Because the scatterplot of log DHEA as a function of time was indicative of a negative linear relationship, we fit a linear mixed effect model of log DHEA as a function of time with a random intercept for each subject. We considered the coefficient for the time variable to characterize the relationship between DHEA and time. For the linear mixed effect models we tested individual coefficients using the t-test from the lmerTest package using Sattherwaite's approximation for degrees of freedom. 
+-appropriatemess of approach in answering research question.
+
+# Results
+
+For the model answering the first research question, the average minutes since waking recorded by the cap is 10.17 (95% CI: [4.53,15.81]) when the minutes recorded by booklet is 0, which is significantly different from 0 (p=.0008), implying that booklet times tend to be earlier than cap times, evidence of bias in the booklet measures. For every 1 minute increase recorded by book, the minutes recorded by cap increase by .9910 (95% CI:[.9771,1.004]). These are significantly positively correlated (p<2E-16) and the slope of the relationship is not significantly different from 1, based on Wald-type CIs, implying there is not evidence to reject agreement between the cap times and book times.
+```{r regplot1}
+library(ggplot2)
+# Create the plot
+ggplot(cortdat, aes(x = minWakeBook, y = minWakeMEM)) +
+  geom_point(alpha = 0.5) + # Add scatter plot points with some transparency
+  geom_smooth(method = "lm", se = TRUE, color = "blue", fill = "lightblue") + # Add the fixed effects regression line with 95% CI
+  labs(title = "",
+       x = "Recorded Booklet Time",
+       y = "Recorded Cap Time") +
+  theme_minimal()
+```
+
+```{r proptable}
+tablemat <- matrix(c(round(x7.5book/y, 3), round(x15book/y,3), round(x7.5MEM/y,3), round(x15MEM/y, 3)), nrow=2,byrow = TRUE)
+colnames(tablemat)<- c("Proportion within 7.5 minutes","Proportion within 15 minutes")
+rownames(tablemat) <- c("Booklet Recorded Times","Cap Recorded Times")
+kableExtra::kable(tablemat)
 ```
