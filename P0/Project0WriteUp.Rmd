@@ -216,18 +216,19 @@ This analysis concerns a dataset of cortisol and DHEA levels measured over the c
 
 # Methods
 
-Data was processed in the following ways. Variables for minutes since waking recorded by booklet and cap were calculated using the provided times ('minWakeBook' and 'minWakeMEM', respectively). Data input as an empty string, and cortisol and DHEA outliers (anything greater than or equal to 80 for cortisol or 5.205 for DHEA in nmol/L) were all replaced by NAs in order to properly call functions necessary for the analysis. One subject was removed for having multiple measured outliers. A second dataset only including observations for collection samples 2 and 4 (30 min and 600 min since waking) was created to answer the second research question.
+Data was processed in the following ways. Variables for minutes since waking recorded by booklet and cap were calculated using the provided times ('minWakeBook' and 'minWakeMEM', respectively). Data input as an empty string, and cortisol and DHEA outliers (anything greater than or equal to 80 for cortisol or 5.205 for DHEA in nmol/L) were all replaced by NAs in order to properly call functions necessary for the analysis. Missing values were excluded from analysis, assuming missing completely at random. One subject was removed for having multiple measured outliers. A second dataset only including observations for collection samples 2 and 4 (30 min and 600 min since waking) was created to answer the second research question.
 
 To analyze the agreement between booklet times and cap times, we conducted linear mixed effect regression with cap times as a function of booklet times, accounting for a random intercept for each subject. Using a mixed effect model accounted for the within subject variation due to each subject having measurements over several days. We tested both the intercept and slope of the model as evidence of bias and agreement (or lack thereof) in the model.
 
 We calculated the proportion of samples whose recorded cap time was within the 15 minute window and 30 minute window around the ideal 30 and 600 minutes since waking. We also calculated this proportion for the booklet times.
 
-For the third research question, linear models of cortisol and DHEA as a function of minutes since waking was proposed. Violation of linear regression assumptions was assessed since cortisol and DHEA are nonnegative right-skewed variables. We found that both residual plots and quantile plots were more indicative of adherence to assumptions when cortisol was log-transformed. Similarly, we log transformed DHEA. For cortisol, we used a piecewise linear mixed effect regression model with a knot at 30 minutes, allowing for the slope of the relationship between log cortisol and time to differ before and after the 30 minute mark, and adjusting for the repeated measures for each subject with a random intercept. We calculated minutes since waking for the model using booklet times. Less booklet times were missing than cap times, and since wake time is human measured, we thought it more consistent to calculate minutes awake using another human measured variable. We were interested in the coefficients for the time variable before and after 30 minutes. We created a similar model for DHEA using log DHEA as the outcome, but keeping the same knot and including random intercepts. For the linear mixed effect models we tested individual coefficients using the t-test from the lmerTest package using Sattherwaite's approximation for degrees of freedom. 
+For the third research question, linear models of cortisol and DHEA as a function of minutes since waking were proposed. Violation of linear regression assumptions was assessed since cortisol and DHEA are nonnegative right-skewed variables. We found that both residual plots and quantile plots were more indicative of adherence to assumptions when cortisol was log-transformed. Similarly, we log transformed DHEA. For cortisol, we used a piecewise linear mixed effect regression model with a knot at 30 minutes, allowing for the slope of the relationship between log cortisol and time to differ before and after the 30 minute mark, and adjusting for the repeated measures for each subject with a random intercept. We calculated minutes since waking for the model using booklet times. Less booklet times were missing than cap times, and since wake time is human measured, we thought it more consistent to calculate minutes awake using another human measured variable. We were interested in the coefficients for the time variable before and after 30 minutes. We created a similar model for DHEA using log DHEA as the outcome, but keeping the same knot and including random intercepts. For the linear mixed effect models we tested individual coefficients using the t-test from the lmerTest package using Sattherwaite's approximation for degrees of freedom. We assumed an $\alpha$ level of .05 for all statistical tests. 
 
 # Results
 
 For the model answering the first research question, the average minutes since waking recorded by the cap is 10.17 (95% CI: [4.53,15.81]) when the minutes recorded by booklet is 0, which is significantly different from 0 (p=.0008), implying that booklet times tend to be earlier than cap times, evidence of bias in the booklet measures. For every 1 minute increase recorded by book, the minutes recorded by cap increase by .9910 (95% CI:[.9771,1.004]). These measures are significantly positively correlated (p<2E-16) and the slope of the relationship is not significantly different from 1, based on Wald-type CIs, implying there is not evidence to reject agreement between the cap times and book times.
-```{r regplot1, echo = FALSE, warning=FALSE, message=FALSE, fig.cap="Regression of booklet minutes vs. MEM minutes"}
+
+```{r regplot1, echo = FALSE, warning=FALSE, message=FALSE, fig.cap="Regression of booklet minutes vs. MEM minutes",out.width="50%",fig.align='center'}
 
 library(dplyr)
 #Regression plot Q1.
@@ -262,6 +263,9 @@ ggplot(cortdat_fit, aes(x = minWakeBook, y = minWakeMEM)) +
 
 
 
+For the second research question addressing proportions, 62.9% of times recorded in the booklet were within 7.5 minutes of the ideal time, and 73.7% were within 15. For cap times, 41.8% of recorded times were within 7.5 minutes of the ideal time, and 54.2% were within 15.
+
+\footnotesize
 ```{r proptable, echo = FALSE, warning=FALSE, message=FALSE}
 tablemat <- matrix(c(round(mean(cortdatq2$adherence7.5book, na.rm=TRUE), 3), round(mean(cortdatq2$adherence15book, na.rm=TRUE), 3), round(mean(cortdatq2$adherence7.5MEM, na.rm=TRUE), 3), round(mean(cortdatq2$adherence15MEM, na.rm=TRUE), 3)), nrow=2,byrow = TRUE)
 colnames(tablemat)<- c("Proportion within 7.5 minutes","Proportion within 15 minutes")
@@ -269,13 +273,11 @@ rownames(tablemat) <- c("Booklet Recorded Times","Cap Recorded Times")
 kableExtra::kable(tablemat, caption="Adherence Proportions For Recorded Observations")
 ```
 
-For the second research question addressing proportions, 62.9% of times recorded in the booklet were within 7.5 minutes of the ideal time, and 73.7% were within 15. For cap times, 41.8% of recorded times were within 7.5 minutes of the ideal time, and 54.2% were within 15.
+\normalsize
 
+For the third research question, our model showed differing trends for cortisol before and after 30 minutes post-waking. For the first waking 30 minutes, average cortisol increased by .43% (95% CI:[-.29%,1.17%]) for each additional waking minute, which was not a significant relationship (p=.2426) so we cannot reject the null hypothesis that time does not affect cortisol levels in the first 30 minutes. After the 30 minute mark, average cortisol levels were observed to decrease by .21% (95% CI: [.17%,.25%]) which was not a significant decrease (p=.0923), failing to provide evidence that after the 30 minute mark, cortisol levels decrease throughout the day.
 
-
-
-
-```{r q3plots, echo = FALSE, warning=FALSE, message=FALSE, fig.cap="Log Cortisol as a function of time, with knot at 30 minutes"}
+```{r q3plots, echo = FALSE, warning=FALSE, message=FALSE, fig.cap="Log Cortisol as a function of time, with knot at 30 minutes",out.width="50%",fig.align='center'}
 newdat <- data.frame(
   minWakeBook = seq(
     min(cortdat$minWakeBook, na.rm = TRUE),
@@ -305,7 +307,9 @@ ggplot(cortdat, aes(x = minWakeBook, y = log(Cortisol..nmol.L.))) +
   theme_minimal()
 ```
 
-```{r q3plot2,  echo=FALSE, warning=FALSE, message=FALSE,fig.cap="Log DHEA as a function of time, with knot at 30 minutes"}
+For average DHEA, levels decreased by 1.86% (95% CI:[1.25%,2.47%]) for each additional waking minute until minute 30, which was a significant trend (p=8.69e-9). After waking minute 30, for each additional minute, average DHEA levels decreased by .14% (95% CI: [.11%,.17%]) which was a significant trend (p=1.82e-7), which provides evidence that DHEA levels decrease throughout the day.
+
+```{r q3plot2,  echo=FALSE, warning=FALSE, message=FALSE,fig.cap="Log DHEA as a function of time, with knot at 30 minutes",out.width="50%",fig.align='center'}
 newdat <- data.frame(
   minWakeBook = seq(
     min(cortdat$minWakeBook, na.rm = TRUE),
@@ -335,19 +339,16 @@ ggplot(cortdat, aes(x = minWakeBook, y = log(DHEA..nmol.L.))) +
   theme_minimal()
 
 ```
-For the third research question, our model showed differing trends for cortisol before and after 30 minutes post-waking. For the first waking 30 minutes, average cortisol increased by .43% (95% CI:[-.29%,1.17%]) for each additional waking minute, which was not a significant relationship (p=.2426) so we cannot reject the null hypothesis that time does not affect cortisol levels in the first 30 minutes. After the 30 minute mark, average cortisol levels were observed to decrease by .21% (95% CI: [.17%,.25%]) which was not a significant decrease (p=.0923), failing to provide evidence that after the 30 minute mark, cortisol levels decrease throughout the day.
-
-For average DHEA, levels decreased by 1.86% (95% CI:[1.25%,2.]) for each additional waking minute until minute 30, which was a significant trend (p=8.69e-9). After waking minute 30, for each additional minute, average DHEA levels decreased by .14% (95% CI: [.11%,.17%]) which was a significant trend (p=1.82e-7), which provides evidence that DHEA levels decrease throughout the day.
 
 # Conclusion
 
-We provided evidence that booklet times may be biased, but are significantly psoitively associated with with MEM times. We also showed that adherence of booklet times was generally higher than MEM times, showing a discrepancy between human-made and electronic measures of recording time. We failed to provide statistical evidence of the proposed cortisol trend before and after 30 minutes, and gave evidence that DHEA levels decrease throughout the day, more sharply in the first 30 minutes.
-
+We provided evidence that booklet times may be biased, but are significantly positively associated with with MEM times. We also showed that adherence of booklet times was generally higher than MEM times, showing a discrepancy between human-made and electronic measures of recording time. We failed to provide statistical evidence of the proposed cortisol trend before and after 30 minutes, and gave evidence that DHEA levels decrease throughout the day, more sharply in the first 30 minutes.
 
 
 
 \scriptsize
-
+\newpage
+\newgeometry{margin=.25in}
 
 ```{r table1, echo = FALSE, warning=FALSE, message=FALSE}
 library(table1)
@@ -364,8 +365,13 @@ label(cortdat$disc) <- "Booklet vs. MEM discrepancy"
 cortdat$Collection.Sample <- factor(cortdat$Collection.Sample)
 label(cortdat$Collection.Sample) <- "Collection Sample"
 
-table1(~Cortisol..nmol.L.+DHEA..nmol.L.+book_missing+cap_missing+disc |Collection.Sample, cortdat, caption="Table of descriptive statistics by collection sample.")
+t1 <- table1(~Cortisol..nmol.L.+DHEA..nmol.L.+book_missing+cap_missing+disc |Collection.Sample, cortdat, caption="Table of descriptive statistics by collection sample.")
 
+t1<- t1flex(t1,tablefn = "qflextable")
+t1 %>% flextable::fontsize(size = 7, part = "all") %>% 
+  # Reduce font size
+  flextable::autofit()
+#t1
 #$t1_df <- as.data.frame(t1)
 
 #knitr::kable(t1_df)
