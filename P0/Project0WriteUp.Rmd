@@ -118,55 +118,37 @@ cortdatq3 <- cortdat[(cortdat$SubjectID!=3037),]
 #residual plots show that using the log of cortisol is better!
 
 
-library(lme4)
-library(splines)
-
-#q3_mod_cortisol <- lmerTest::lmer(log(Cortisol..nmol.L.)~bs(minWakeBook, knots=c(30), degree=1)+(1|SubjectID),
-               #data=cortdatq3)
-#summary(q3_mod_cortisol)
-
-
-#q3_mod_DHEA <- lmerTest::lmer(log(DHEA..nmol.L.)~bs(minWakeBook, knots=c(30), degree=1)+(1|SubjectID),
-               #data=cortdatq3)
-#summary(q3_mod_DHEA)
-
-
-
-
-# Load necessary library
 library(lmerTest)
 
 # Define the knot value
 knot_value <- 30
 
 # Create new variables in your data frame
-cortdat$time_after_knot <- ifelse(cortdat$minWakeBook > knot_value, cortdat$minWakeBook - knot_value, 0)
-# Alternatively, you can use the pmax function as shown in the R-bloggers example
-# data$time_after_knot <- pmax(data$time - knot_value, 0)
+cortdatq3$time_after_knot <- ifelse(cortdatq3$minWakeBook > knot_value, cortdatq3$minWakeBook - knot_value, 0)
+
 
 # The indicator variable is implicitly handled by the time_after_knot variable structure, 
 # but for clarity in equation form it's useful to understand.
 
 # Fit the model using lmer (or lme from nlme package)
 # Example allows random intercept and random slopes for both segments to vary by ID
-q3_mod_cortisol <- lmer(log(Cortisol..nmol.L.) ~ minWakeBook + time_after_knot + (1| SubjectID), data = cortdat)
+q3_mod_cortisol <- lmer(log(Cortisol..nmol.L.) ~ minWakeBook + time_after_knot + (1| SubjectID), data = cortdatq3)
 
-q3_mod_DHEA <- lmer(log(DHEA..nmol.L.) ~ minWakeBook + time_after_knot + (1| SubjectID), data = cortdat)
+q3_mod_DHEA <- lmer(log(DHEA..nmol.L.) ~ minWakeBook + time_after_knot + (1| SubjectID), data = cortdatq3)
 
 # View model summary
 #summary(q3_mod_cortisol)
 #summary(q3_mod_DHEA)
 
 
-library(lme4)
 library(ggplot2)
 
 q3_mod_cortisol <- lmer(
   log(Cortisol..nmol.L.) ~ minWakeBook + time_after_knot + (1 | SubjectID),
-  data = cortdat
+  data = cortdatq3
 )
 
-
+##Calculating the beta1+beta2 slopes for question 3 
 
 # fixed effects
 b_c <- fixef(q3_mod_cortisol)
@@ -233,8 +215,10 @@ For the model answering the first research question, the average minutes since w
 library(dplyr)
 #Regression plot Q1.
 
+#filter out missing
 cortdat_fit <- cortdat %>%
   filter(!is.na(minWakeMEM), !is.na(minWakeBook))
+
 #Predicted fixed effects
 cortdat_fit <- cortdat_fit %>%
   mutate(pred_fixed = predict(mod1, re.form = NA))  
@@ -249,16 +233,6 @@ ggplot(cortdat_fit, aes(x = minWakeBook, y = minWakeMEM)) +
   theme_minimal()
 
 
-##OLD CODE
-# library(ggplot2)
-# # Create the plot
-# ggplot(cortdat, aes(x = minWakeBook, y = minWakeMEM)) +
-#   geom_point(alpha = 0.5) + # Add scatter plot points with some transparency
-#   geom_smooth(method = "lm", se = TRUE, color = "blue", fill = "lightblue") + # Add the fixed effects regression line with 95% CI
-#   labs(title = "",
-#        x = "Recorded Booklet Time",
-#        y = "Recorded Cap Time") +
-#   theme_minimal()
 ```
 
 
@@ -267,6 +241,8 @@ For the second research question addressing proportions, 62.9% of times recorded
 
 \footnotesize
 ```{r proptable, echo = FALSE, warning=FALSE, message=FALSE}
+
+# Table of adherence proportions
 tablemat <- matrix(c(round(mean(cortdatq2$adherence7.5book, na.rm=TRUE), 3), round(mean(cortdatq2$adherence15book, na.rm=TRUE), 3), round(mean(cortdatq2$adherence7.5MEM, na.rm=TRUE), 3), round(mean(cortdatq2$adherence15MEM, na.rm=TRUE), 3)), nrow=2,byrow = TRUE)
 colnames(tablemat)<- c("Proportion within 7.5 minutes","Proportion within 15 minutes")
 rownames(tablemat) <- c("Booklet Recorded Times","Cap Recorded Times")
@@ -275,13 +251,13 @@ kableExtra::kable(tablemat, caption="Adherence Proportions For Recorded Observat
 
 \normalsize
 
-For the third research question, our model showed differing trends for cortisol before and after 30 minutes post-waking. For the first waking 30 minutes, average cortisol increased by .43% (95% CI:[-.29%,1.17%]) for each additional waking minute, which was not a significant relationship (p=.2426) so we cannot reject the null hypothesis that time does not affect cortisol levels in the first 30 minutes. After the 30 minute mark, average cortisol levels were observed to decrease by .21% (95% CI: [.17%,.25%]) which was not a significant decrease (p=.0923), failing to provide evidence that after the 30 minute mark, cortisol levels decrease throughout the day.
+For the third research question, our model showed differing trends for cortisol before and after 30 minutes post-waking. For the first waking 30 minutes, average cortisol increased by .61% (95% CI:[-.10%,1.34%]) for each additional waking minute, which was not a significant relationship (p=.0936) so we cannot reject the null hypothesis that time does not affect cortisol levels in the first 30 minutes. After the 30 minute mark, average cortisol levels were observed to decrease by .22% (95% CI: [.19%,.26%]) which was a significant decrease (p=.0262), providing evidence that after the 30 minute mark, cortisol levels decrease throughout the day.
 
 ```{r q3plots, echo = FALSE, warning=FALSE, message=FALSE, fig.cap="Log Cortisol as a function of time, with knot at 30 minutes",out.width="50%",fig.align='center'}
 newdat <- data.frame(
   minWakeBook = seq(
-    min(cortdat$minWakeBook, na.rm = TRUE),
-    max(cortdat$minWakeBook, na.rm = TRUE),
+    min(cortdatq3$minWakeBook, na.rm = TRUE),
+    max(cortdatq3$minWakeBook, na.rm = TRUE),
     length.out = 200
   )
 )
@@ -307,13 +283,13 @@ ggplot(cortdat, aes(x = minWakeBook, y = log(Cortisol..nmol.L.))) +
   theme_minimal()
 ```
 
-For average DHEA, levels decreased by 1.86% (95% CI:[1.25%,2.47%]) for each additional waking minute until minute 30, which was a significant trend (p=8.69e-9). After waking minute 30, for each additional minute, average DHEA levels decreased by .14% (95% CI: [.11%,.17%]) which was a significant trend (p=1.82e-7), which provides evidence that DHEA levels decrease throughout the day.
+For average DHEA, levels decreased by 1.76% (95% CI:[1.17%,2.35%]) for each additional waking minute until minute 30, which was a significant trend (p=1.58E-8). After waking minute 30, for each additional minute, average DHEA levels decreased by .15% (95% CI: [.12%,.18%]) which was a significant trend (p=4.19E-7), which provides evidence that DHEA levels decrease throughout the day.
 
 ```{r q3plot2,  echo=FALSE, warning=FALSE, message=FALSE,fig.cap="Log DHEA as a function of time, with knot at 30 minutes",out.width="50%",fig.align='center'}
 newdat <- data.frame(
   minWakeBook = seq(
-    min(cortdat$minWakeBook, na.rm = TRUE),
-    max(cortdat$minWakeBook, na.rm = TRUE),
+    min(cortdatq3$minWakeBook, na.rm = TRUE),
+    max(cortdatq3$minWakeBook, na.rm = TRUE),
     length.out = 200
   )
 )
@@ -328,7 +304,7 @@ newdat$pred <- predict(
   re.form = NA
 )
 
-ggplot(cortdat, aes(x = minWakeBook, y = log(DHEA..nmol.L.))) +
+ggplot(cortdatq3, aes(x = minWakeBook, y = log(DHEA..nmol.L.))) +
   geom_point(alpha = 0.4) +
   geom_line(data = newdat, aes(y = pred), linewidth = 1) +
   geom_vline(xintercept = 30, linetype = "dashed") +
