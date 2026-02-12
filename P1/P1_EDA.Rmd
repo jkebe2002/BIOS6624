@@ -1,0 +1,128 @@
+```{r c1}
+
+hivdat <- read.csv("~/Downloads/hiv_6624_final.csv")
+
+library(naniar)
+
+vis_miss(hivdat)
+
+hist(hivdat$RACE)
+
+
+
+hist(hivdat$LEU3N)
+hist(log(hivdat$VLOAD), breaks=1000)
+hist(hivdat$VLOAD, breaks=10)
+
+hist(hivdat$AGG_MENT)
+hist(hivdat$AGG_PHYS)
+
+mod1 <- lme4::lmer(VLOAD ~ years*hard_drugs+(1|newid), data=hivdat)
+plot(x=hivdat$hard_drugs,y=log(hivdat$VLOAD))
+
+
+#plot(x=hivdat$newid,y=hivdat$income)
+
+
+mod2<-lm(log(VLOAD)~hard_drugs, data=hivdat)
+
+ols_plot_resid_qq(mod2)
+
+ols_plot_resid_fit(mod2)
+
+hist(hivdat$X)
+
+
+summary(hivdat)
+
+
+
+#CESD -1 set to missing
+#LIV34,FRP,FP,HBP,DYSLIP,DIAB: 9: insufficient data
+#BMI 999: insufficient
+
+#income 9: missing
+
+#HEROPIATE: -9= Not specified in form
+
+
+#fill in with NAs
+
+hivdat <- hivdat%>%
+  mutate(CESD = na_if(CESD, -1))    %>%
+  mutate(LIV34 = na_if(LIV34, 9))   %>%
+  mutate(FRP = na_if(FRP, 9))       %>%
+  mutate(FP = na_if(FP, 9))         %>%
+  mutate(HBP = na_if(HBP, 9))       %>%
+  mutate(DYSLIP = na_if(DYSLIP, 9)) %>%
+  mutate(DIAB = na_if(DIAB, 9))     %>%
+  mutate(BMI = na_if(BMI, 999))     %>%
+  mutate(income = na_if(income, 9)) %>%
+  mutate(HEROPIATE = na_if(HEROPIATE, -9)) 
+
+library(naniar)
+
+
+hist(hivdat$RACE)
+
+
+cor(hivdat, use = "complete.obs")
+
+
+#LDL TCHOL high correlation >.9
+
+
+library(corrr)
+hivdat %>% 
+  correlate() %>% 
+  stretch() %>% 
+  filter(abs(r) > 0.7 & x != y)
+
+#here we see high correlation of 
+#FRP, FP
+#TCHOL , LDL
+#IDU, hard_drugs
+#ART, everART
+
+#I would use FRP not FP
+
+
+gg_miss_fct(hivdat, years)
+vis_miss(hivdat)
+
+
+diff_LEU3N <- hivdat %>%
+  filter(years %in% c(0, 2)) %>%
+  select(newid, years, LEU3N) %>%
+  tidyr::pivot_wider(names_from = years, values_from = LEU3N) %>%
+  mutate(diff_LEU3N = `2` - `0`)
+
+diff_VLOAD <- hivdat %>%
+  filter(years %in% c(0, 2)) %>%
+  select(newid, years, VLOAD) %>%
+  tidyr::pivot_wider(names_from = years, values_from = VLOAD) %>%
+  mutate(diff_VLOAD = `2` - `0`)
+
+diff_AGG_MENT <- hivdat %>%
+  filter(years %in% c(0, 2)) %>%
+  select(newid, years, AGG_MENT) %>%
+  tidyr::pivot_wider(names_from = years, values_from = AGG_MENT) %>%
+  mutate(diff_AGG_MENT = `2` - `0`)
+
+diff_AGG_PHYS <- hivdat %>%
+  filter(years %in% c(0, 2)) %>%
+  select(newid, years, AGG_PHYS) %>%
+  tidyr::pivot_wider(names_from = years, values_from = AGG_PHYS) %>%
+  mutate(diff_AGG_PHYS = `2` - `0`)
+
+hivdat_0 <- hivdat[hivdat$years==0,]
+hivdat_0$diff_LEU3N<-diff_LEU3N$diff_LEU3N
+hivdat_0$diff_VLOAD<-diff_VLOAD$diff_VLOAD
+hivdat_0$diff_AGG_MENT<-diff_AGG_MENT$diff_AGG_MENT
+hivdat_0$diff_AGG_PHYS<-diff_AGG_PHYS$diff_AGG_PHYS
+
+
+#in hivdat_0, all variables are baseline measures, and diff_X measures are difference from 2 yrs to baseline....
+
+
+```

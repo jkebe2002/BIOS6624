@@ -1,0 +1,73 @@
+---
+title: "Project 0 EDA"
+author: "Jacob Kebe"
+date: "2026-01-27"
+output: html_document
+---
+
+```{r c1}
+cortdat <- read.csv("~/Downloads/Project0_Clean_v2.csv")
+library(naniar)
+library(tidyr)
+library(dplyr)
+vis_miss(cortdat)
+
+
+
+sum(as.numeric(cortdat$MEMs..Clock.Time==""))
+sum(as.numeric(cortdat$Booket..Clock.Time==""))
+
+cortdat <- cortdat %>%
+  mutate(Sleep.Diary.reported.wake.time = na_if(Sleep.Diary.reported.wake.time, "")) %>%
+  fill(Sleep.Diary.reported.wake.time, .direction="down")
+
+cortdat$date<- as.Date(cortdat$Collection.Date, format = "%m/%d/%Y")
+cortdat$
+plot(cortdat$Collection.Sample,cortdat$Cortisol..nmol.L.)
+
+plot(cortdat$minWakeBook, cortdat$Cortisol..nmol.L.)
+
+
+
+
+##Time since waking 
+cortdat$timeBook <- as.POSIXct(cortdat$Booket..Clock.Time, format="%H:%M")
+cortdat$timeMEM <- as.POSIXct(cortdat$MEMs..Clock.Time, format="%H:%M")
+cortdat$timeWake <- as.POSIXct(cortdat$Sleep.Diary.reported.wake.time, format="%H:%M")
+
+#minutes since waking up using MEM
+cortdat$minWakeMEM <- as.numeric(difftime(cortdat$timeMEM,cortdat$timeWake, units="mins"))
+cortdat$minWakeBook <- as.numeric(difftime(cortdat$timeBook,cortdat$timeWake, units="mins"))
+
+#Booklet time minus MEM time
+cortdat$disc <- as.numeric(difftime(cortdat$timeBook,cortdat$timeMEM, units="mins"))
+
+cortdat <- cortdat %>%
+  mutate(Booket..Clock.Time = na_if(Booket..Clock.Time, "")) %>%
+  mutate(MEMs..Clock.Time = na_if(MEMs..Clock.Time, "")) 
+
+
+plot(cortdat$minWakeMEM, cortdat$minWakeBook)
+
+#Q1: ASSOCIATION TESTS
+t.test(cortdat$disc)
+
+#Here we see that the MEM time is usually greater than Booklet time. (maybe people record that they did the sampling earlier than they actually did...)
+
+mod1 <- lmerTest::lmer(minWakeMEM ~ minWakeBook + (1|SubjectID),data=cortdat)
+summary(mod1)
+
+
+mod2 <- lm(minWakeMEM ~ minWakeBook,data=cortdat)
+summary(mod2)
+
+
+
+
+#Q1: linear mixed regression
+
+
+
+#Missing Cortisol coded as 9999
+#recorded cortisol but no recorded time 
+```
