@@ -19,7 +19,7 @@ header-includes:
 
 # Introduction
 
-In a cohort of HIV infected patients undergoing Highly Active Antiretrovial Treatment (HAART) over an 8 year period, there is interest whether treatment response differs between patients who reported hard drug use and those who did not. 4 measures of treatment response will be considered and tested: number of HIV copies per mL of blood ("viral load"), CD4+ T cell count (indicative of level of immunological response), and aggregate physical quality of life score and aggregate mental quality of life score from the SF-36 assessment. Under treatment, viral load is expected to decline and T cell count is expected to increase over time. We will test, for each outcome, whether there is a statisically and clinically significant relationship between the difference in the outcome at 2 years vs. baseline, and hard drug use reported at baseline.
+In a cohort of HIV infected patients undergoing Highly Active Antiretrovial Treatment (HAART) over an 8 year period, there is interest whether treatment response differs between patients who reported hard drug use and those who did not. 4 measures of treatment response will be considered and tested: number of HIV copies per mL of blood ("viral load"), CD4+ T cell count (indicative of level of immunological response), and aggregate physical quality of life score and aggregate mental quality of life score from the SF-36 assessment. Under treatment, viral load is expected to decline and T cell count is expected to increase over time. We will test, for each outcome, whether there is a statistically and clinically significant relationship between the difference in the outcome at 2 years vs. baseline, and hard drug use reported at baseline.
 
 # Preliminary Methods
 
