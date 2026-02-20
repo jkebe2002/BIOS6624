@@ -54,13 +54,15 @@ mod <- cmdstan_model('~/Documents/GitHub/BIOS6624/P1/Code/linear_regression_half
 
 #outcomes:
 
-lvload <- hivdat_clean$diff_lvload
-leu3n <- hivdat_clean$diff_LEU3N
-agg_ment <- hivdat_clean$diff_AGG_MENT
-agg_phys <- hivdat_clean$diff_AGG_PHYS
+lvload <- hivdat_clean[!is.na(hivdat_clean$BMI),]$diff_lvload
+leu3n <- hivdat_clean[!is.na(hivdat_clean$BMI),]$diff_LEU3N
+agg_ment <- hivdat_clean[!is.na(hivdat_clean$BMI),]$diff_AGG_MENT
+agg_phys <- hivdat_clean[!is.na(hivdat_clean$BMI),]$diff_AGG_PHYS
 
 # Design matrix in our linear regression
-X <- model.matrix(~ hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data = hivdat_clean) 
+X <- model.matrix(~ hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0,
+                  data = hivdat_clean,
+                  na.action=na.pass) 
 
 # N is the number of observations in your data set 
 # P is the number of columns in the design matrix
@@ -107,7 +109,7 @@ data_list_agg_phys <- list(
   N = N,
   P = P,
   X = X,
-  y = y,
+  y = agg_phys,
   prior_mean = m,
   prior_sd = s,
   sigma_prior_sd = sigma_sd
@@ -192,12 +194,13 @@ bayes_table <- function(fit) {
   }) %>% bind_rows()
   
   print(summary_table)
+  return(summary_table)
 }
 
-bayes_table(fit_lvload)
-bayes_table(fit_leu3n)
-bayes_table(fit_agg_ment)
-bayes_table(fit_agg_phys)
+b1 <- bayes_table(fit_lvload)
+b2 <-bayes_table(fit_leu3n)
+b3 <- bayes_table(fit_agg_ment)
+b4 <-bayes_table(fit_agg_phys)
 
 
 # check that mcmcse < 6% of posterior SD
@@ -216,12 +219,13 @@ bayes_fit_stats <- function(fit){
   
   waic_res <- waic(loglik_mat)
   print(waic_res)
+  return(loo_res)
 }
 
-bayes_fit_stats(fit_lvload)
-bayes_fit_stats(fit_leu3n)
-bayes_fit_stats(fit_agg_ment)
-bayes_fit_stats(fit_agg_phys)
+loo1 <- bayes_fit_stats(fit_lvload)
+loo2 <-bayes_fit_stats(fit_leu3n)
+loo3 <-bayes_fit_stats(fit_agg_ment)
+loo4 <-bayes_fit_stats(fit_agg_phys)
 
 
 # fit plots and diagnostics function
@@ -269,6 +273,33 @@ freq_agg_ment <- lm(diff_AGG_MENT~hard_drugs+educ_cat+race_cat+smoke_cat+BMI+age
 freq_agg_phys <- lm(diff_AGG_PHYS~hard_drugs+educ_cat+race_cat+smoke_cat+BMI+age, data=hivdat_clean)
 
 
+
+#Bayesian Regression output table
+clinic_vals<- c(.5,50,2,2)
+bayes_table_matrix <- matrix(c(b1$Estimate[1],
+                               b1$HPDI_2.5[1],
+                               b1$HPDI_97.5[1],
+                               1-2*pnorm(clinic_vals[1],mean=b1$Estimate[1],sd=b1$Std_Dev[1],lower.tail = TRUE),
+                             loo1$looic,
+                             b2$Estimate[1],
+                             b2$HPDI_2.5[1],
+                             b2$HPDI_97.5[1],
+                             1-2*pnorm(clinic_vals[2],mean=b2$Estimate[1],sd=b2$Std_Dev[1],lower.tail = TRUE),
+                             loo2$looic,
+                             b3$Estimate[1],
+                             b3$HPDI_2.5[1],
+                             b3$HPDI_97.5[1],
+                             1-2*pnorm(clinic_vals[3],mean=b3$Estimate[1],sd=b3$Std_Dev[1],lower.tail = TRUE),
+                             loo3$looic,
+                             b4$Estimate[1],
+                             b4$HPDI_2.5[1],
+                             b4$HPDI_97.5[1],
+                             1-2*pnorm(clinic_vals[4],mean=b4$Estimate[1],sd=b4$Std_Dev[1],lower.tail = TRUE),
+                             loo4$looic),
+                             byrow = TRUE, ncol = 5)
+colnames(bayes_table_matrix) <- c("Hard Drugs Effect Estimate", "2.5% HPDI", "97.5% HPDI", "Post. Prob.", "Model LOO-IC")
+rownames(bayes_table_matrix) <- c("log Viral Load", "CD4+ T Cell Count", "Mental Quality of Life Score", "Physical Quality of Life Score")
+knitr::kable(bayes_table_matrix)
 #Table 1:
 
 library(table1)
