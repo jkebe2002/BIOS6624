@@ -1,0 +1,101 @@
+---
+title: "Project 1"
+author: "Jacob Kebe"
+output: pdf_document
+documentclass: article
+geometry: margin=1in
+fontsize: 12pt
+linestretch: 2
+header-includes:
+  - \usepackage{setspace}
+  - \doublespacing
+  - \usepackage{multirow}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{dcolumn}
+  - \usepackage{fvextra}
+  - \usepackage{bm}
+---
+
+
+
+```{r ggplots}
+library(gridExtra)
+grid.arrange(p_lvl0, p_leu3n0, p_aggment0, p_aggphys0, p_lvl2, p_leu3n2, p_aggment2, p_aggphys2, nrow=2, ncol=4)
+
+```
+# Introduction
+
+Approximately 0.5 page.
+• Briefly describe the project including:
+o data received from the investigator
+o the scientific hypothesis of interest
+• Rephrase the scientific hypothesis of interest into testable statistical hypotheses.
+• Note this is NOT a scientific introduction to a paper and should give information
+pertinent to the data analysis, not more general biology background.
+
+
+# Methods
+• Approximately 2 pages.
+• Should be written in past tense and should NOT include any results.
+• A brief description of data management and any methods used to clean the data. This
+may include, but is not limited to:
+o Methods used to identify outliers or potentially erroneous values.
+o Describing any new variables you calculated from the dataset, for example,
+classifying subjects based on a continuous variable or calculating BMI from
+height and weight.
+o Describing any filtering of the dataset, for example limiting the dataset to the time
+range and/or population of interest to address the research question
+• An in-depth description of methods used to analyze the data. This may include, but is not
+limited to:
+o A brief description of preliminary data analysis methods and descriptive statistic
+methods.
+o A description of the statistical model used to analyze the data
+▪ Type of model
+▪ Outcome variable
+▪ Primary explanatory variables
+▪ Potential covariates, including confounders, mediators, effect modifiers,
+and precision variables
+Name
+Date
+- 3 -
+o If you are unsure of which variables will be included in your model a priori,
+describe your model selection strategy
+o Describe how you will test the hypotheses stated in the introduction.
+▪ For example, in a regression modelling setting, which coefficients or
+combination of coefficients will you test?
+▪ What type of statistical test will you use (t-test, F-test, Chi-square test,
+likelihood ratio test…)?
+▪ What level test will be used to determine statistical significance?
+▪ Did you adjust for multiple comparisons?
+• Justify and explain your data analysis approach
+o How does this approach address the research question?
+o Why is this approach appropriate for the type of data you are analyzing?
+• Do NOT include equations, unless completely necessary. Any equations must be written
+with correct statistical notation and fully explained in terms a non-statistician can
+understand.
+
+
+
+# Results
+• Approximately 1-1.5 pages
+• Present results for analyses described in the methods. In addition to describing the results
+of statistical testing this includes:
+o Descriptive statistics
+o If model selection strategies were use, the variables included in the final model
+• Use Tables and Figures as appropriate
+Name
+Date
+- 4 -
+• Include full interpretation of statistical results for the main findings in the text, including:
+o point estimates
+o confidence bounds
+o p-values
+o interpretation of the results of tests
+
+
+# Conclusions / Discussion
+• 0.5-1 page
+• Interpret your results in context of scientific question(s).
+• Discuss any limitations of your analysis that may affect interpretation or that require
+additional consideration by the investigator

@@ -64,6 +64,15 @@ X <- model.matrix(~ hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0,
                   data = hivdat_clean,
                   na.action=na.pass) 
 
+
+X_no_hard_drugs <- model.matrix(~educ_cat+race_cat+smoke_cat+BMI+age_0,
+                  data = hivdat_clean,
+                  na.action=na.pass) 
+
+X_adh <- model.matrix(~ hard_drugs_0+ADH+educ_cat+race_cat+smoke_cat+BMI+age_0,
+                  data = hivdat_clean,
+                  na.action=na.pass) 
+
 # N is the number of observations in your data set 
 # P is the number of columns in the design matrix
 N <- nrow(X)
@@ -154,6 +163,176 @@ fit_agg_phys <- mod$sample(
 )
 
 
+
+###################################
+######ADHERENCE MODELS#############
+###################################
+
+# create data lists to pass to STAN for each outcome
+data_list_lvload_adh <- list(
+  N = N,
+  P = P,
+  X = X_adh,
+  y = lvload,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+data_list_leu3n_adh <- list(
+  N = N,
+  P = P,
+  X = X_adh,
+  y = leu3n,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+data_list_agg_ment_adh <- list(
+  N = N,
+  P = P,
+  X = X_adh,
+  y = agg_ment,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+data_list_agg_phys_adh <- list(
+  N = N,
+  P = P,
+  X = X_adh,
+  y = agg_phys,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+#Model fits for each outcome
+
+#log viral load
+fit_lvload_adh <- mod$sample(
+  data = data_list_lvload_adh,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+
+#t cell count
+fit_leu3n_adh <- mod$sample(
+  data = data_list_leu3n_adh,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+
+#mental health score
+fit_agg_ment_adh <- mod$sample(
+  data = data_list_agg_ment_adh,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+
+#phys health score
+fit_agg_phys_adh <- mod$sample(
+  data = data_list_agg_phys_adh,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+
+
+
+
+#######################################
+######NO HARD DRUGS MODELS#############
+#######################################
+
+# create data lists to pass to STAN for each outcome
+data_list_lvload_no_hard_drugs <- list(
+  N = N,
+  P = P,
+  X = X_no_hard_drugs,
+  y = lvload,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+data_list_leu3n_no_hard_drugs <- list(
+  N = N,
+  P = P,
+  X = X_no_hard_drugs,
+  y = leu3n,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+data_list_agg_ment_no_hard_drugs <- list(
+  N = N,
+  P = P,
+  X = X_no_hard_drugs,
+  y = agg_ment,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+data_list_agg_phys_no_hard_drugs <- list(
+  N = N,
+  P = P,
+  X = X_no_hard_drugs,
+  y = agg_phys,
+  prior_mean = m,
+  prior_sd = s,
+  sigma_prior_sd = sigma_sd
+)
+
+#Model fits for each outcome
+
+#log viral load
+fit_lvload_no_hard_drugs <- mod$sample(
+  data = data_list_lvload_no_hard_drugs,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+
+#t cell count
+fit_leu3n_no_hard_drugs <- mod$sample(
+  data = data_list_leu3n_no_hard_drugs,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+
+#mental health score
+fit_agg_ment_no_hard_drugs <- mod$sample(
+  data = data_list_agg_ment_no_hard_drugs,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+
+#phys health score
+fit_agg_phys_no_hard_drugs <- mod$sample(
+  data = data_list_agg_phys_no_hard_drugs,
+  chains = 4,
+  iter_warmup = 5000,
+  iter_sampling = 25000,
+  seed = 2319
+)
+#######################################
 #function to print results summary table 
 
 bayes_table <- function(fit) {
@@ -267,34 +446,38 @@ bayes_diagnostics <- function(fit){
 
 
 #frequentist models for each outcome:
-freq_lvload   <- lm(diff_lvload~hard_drugs+educ_cat+race_cat+smoke_cat+BMI+age, data=hivdat_clean)
-freq_leu3n    <- lm(diff_LEU3N~hard_drugs+educ_cat+race_cat+smoke_cat+BMI+age, data=hivdat_clean)
-freq_agg_ment <- lm(diff_AGG_MENT~hard_drugs+educ_cat+race_cat+smoke_cat+BMI+age, data=hivdat_clean)
-freq_agg_phys <- lm(diff_AGG_PHYS~hard_drugs+educ_cat+race_cat+smoke_cat+BMI+age, data=hivdat_clean)
+freq_lvload   <- lm(diff_lvload~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
+freq_leu3n    <- lm(diff_LEU3N~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
+freq_agg_ment <- lm(diff_AGG_MENT~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
+freq_agg_phys <- lm(diff_AGG_PHYS~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
 
 
 
 #Bayesian Regression output table
 clinic_vals<- c(.5,50,2,2)
+
+postprob <- function(q, mean, sd) {
+  return(1+pnorm(-q,mean=mean, sd=sd, lower.tail = FALSE)-pnorm(q,mean=mean,sd=sd,lower.tail = TRUE))
+}
 bayes_table_matrix <- matrix(c(b1$Estimate[2],
                                b1$HPDI_2.5[2],
                                b1$HPDI_97.5[2],
-                               1-2*pnorm(clinic_vals[1],mean=b1$Estimate[2],sd=b1$Std_Dev[2],lower.tail = TRUE),
+                               postprob(q=clinic_vals[1],mean=b1$Estimate[2],sd=b1$Std_Dev[2]),
                              loo1$looic,
                              b2$Estimate[2],
                              b2$HPDI_2.5[2],
                              b2$HPDI_97.5[2],
-                             1-2*pnorm(clinic_vals[2],mean=b2$Estimate[2],sd=b2$Std_Dev[2],lower.tail = TRUE),
+                             pnorm(clinic_vals[2],mean=b2$Estimate[2],sd=b2$Std_Dev[2],lower.tail = TRUE),
                              loo2$looic,
                              b3$Estimate[2],
                              b3$HPDI_2.5[2],
                              b3$HPDI_97.5[2],
-                             1-2*pnorm(clinic_vals[3],mean=b3$Estimate[2],sd=b3$Std_Dev[2],lower.tail = TRUE),
+                             pnorm(clinic_vals[3],mean=b3$Estimate[2],sd=b3$Std_Dev[2],lower.tail = TRUE),
                              loo3$looic,
                              b4$Estimate[2],
                              b4$HPDI_2.5[2],
                              b4$HPDI_97.5[2],
-                             1-2*pnorm(clinic_vals[4],mean=b4$Estimate[1],sd=b4$Std_Dev[2],lower.tail = TRUE),
+                             pnorm(clinic_vals[4],mean=b4$Estimate[1],sd=b4$Std_Dev[2],lower.tail = TRUE),
                              loo4$looic),
                              byrow = TRUE, ncol = 5)
 colnames(bayes_table_matrix) <- c("Hard Drugs Effect Estimate", "2.5% HPDI", "97.5% HPDI", "Post. Prob.", "Model LOO-IC")
@@ -324,4 +507,12 @@ t1<- t1flex(t1,tablefn = "qflextable")
 t1 %>% flextable::fontsize(size = 7, part = "all") %>% 
   # Reduce font size
   flextable::autofit()
+
+
+
+
+
+###adherence into 2 categories
+
+## Descriptively talk about adherence 
 #t1
