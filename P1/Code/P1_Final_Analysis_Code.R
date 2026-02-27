@@ -19,7 +19,7 @@ library(gridExtra)
 
 #Here, we create histgrams of distribution of each outcome at year 0 and year 2 stratified by drug use.
 #############
-create_histograms <- function{
+create_histograms <- function() {
   p_lvl0 <- ggplot(data=hivdat_clean, aes(x=lVload_0, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
     theme_bw()+xlab("Log Viral Load (Baseline)")+
@@ -501,8 +501,7 @@ b2_adh <- bayes_table(fit_leu3n_adh)
 b3_adh <- bayes_table(fit_agg_ment_adh)
 b4_adh <- bayes_table(fit_agg_phys_adh)
 
-# check that mcmcse < 6% of posterior SD
-(100*summary_table$MCSE/summary_table$Std_Dev) < 6
+
 
 
 
@@ -585,7 +584,7 @@ bayes_table_matrix <- matrix(c(b1$Estimate[2],
                                b4$HPDI_97.5[2],
                                pnorm(clinic_vals[4],mean=b4$Estimate[1],sd=b4$Std_Dev[2],lower.tail = TRUE),
                                loo4$looic,
-                               loo4_delt,),
+                               loo4_delt),
                              byrow = TRUE, ncol = 6)
 colnames(bayes_table_matrix) <- c("Hard Drugs Effect Estimate", "2.5% HPDI", "97.5% HPDI", "Post. Prob.", "Model LOO-IC", "Delta LOO-IC (Model w/o Hard Drug Use)")
 rownames(bayes_table_matrix) <- c("log Viral Load", "CD4+ T Cell Count", "Mental Quality of Life Score", "Physical Quality of Life Score")
@@ -593,21 +592,22 @@ knitr::kable(bayes_table_matrix)
 #Table 1:
 
 library(table1)
-
-label(hivdat_clean$lVload) <- "log(HIV copies per mL of blood)"
-label(hivdat_clean$LEU3N) <- "CD4+ T cell Count"
-label(hivdat_clean$AGG_MENT) <- "Mental Quality of Life Score"
-label(hivdat_clean$AGG_PHYS) <- "Physical Quality of Life Score"
+hivdat_clean$ADH_cat <- ifelse(hivdat_clean$ADH == 1, ">95% Adherence", "<95% Adherence")
+label(hivdat_clean$lVload_0) <- "log(HIV copies per mL of blood)"
+label(hivdat_clean$ADH_cat) <- "Adherence"
+label(hivdat_clean$LEU3N_0) <- "CD4+ T cell Count"
+label(hivdat_clean$AGG_MENT_0) <- "Mental Quality of Life Score"
+label(hivdat_clean$AGG_PHYS_0) <- "Physical Quality of Life Score"
 label(hivdat_clean$educ_cat) <- "Education Level"
 label(hivdat_clean$race_cat) <- "Race"
 label(hivdat_clean$smoke_cat) <- "Smoking Status"
 label(hivdat_clean$BMI) <- "Body Mass Index (BMI)"
-label(hivdat_clean$age) <- "Age"
-hivdat_clean$hard_drugs <- as.factor(hivdat_clean$hard_drugs)
-label(hivdat_clean$hard_drugs) <- "Hard Drug Usage (Yes=1)"
+label(hivdat_clean$age_0) <- "Age"
+hivdat_clean$hard_drugs_0 <- as.factor(hivdat_clean$hard_drugs_0)
+label(hivdat_clean$hard_drugs_0) <- "Hard Drug Usage (Yes=1)"
 
 
-t1 <- table1(~lVload+LEU3N+AGG_MENT+AGG_PHYS+educ_cat+race_cat+smoke_cat+BMI+age|hard_drugs, hivdat_clean,
+t1 <- table1(~lVload_0+LEU3N_0+AGG_MENT_0+AGG_PHYS_0+educ_cat+race_cat+smoke_cat+BMI+age_0+ADH_cat|hard_drugs_0, hivdat_clean,
              caption="Table of Descriptive Statistics by Drug Use.")
 
 t1<- t1flex(t1,tablefn = "qflextable")
@@ -674,41 +674,6 @@ kableExtra::kable(bayes_vs_freq_matrix)
 #####################
 #ADHERENCE TABLE#####
 #####################
-b1$Estimate[2],
-b1$HPDI_2.5[2],
-b1$HPDI_97.5[2],
-b1_adh$Estimate[2],
-b1_adh$HPDI_2.5[2],
-b1_adh$HPDI_97.5[2],
-b1$Estimate[2]-b1_adh$Estimate[2],
-abs(b1$Estimate[2]-b1_adh$Estimate[2])/b1$Estimate[2],
-
-b2$Estimate[2],
-b2$HPDI_2.5[2],
-b2$HPDI_97.5[2],
-b2_adh$Estimate[2],
-b2_adh$HPDI_2.5[2],
-b2_adh$HPDI_97.5[2],
-b2$Estimate[2]-b2_adh$Estimate[2],
-abs(b2$Estimate[2]-b2_adh$Estimate[2])/b2$Estimate[2],
-
-b3$Estimate[2],
-b3$HPDI_2.5[2],
-b3$HPDI_97.5[2],
-b3_adh$Estimate[2],
-b3_adh$HPDI_2.5[2],
-b3_adh$HPDI_97.5[2],
-b3$Estimate[2]-b3_adh$Estimate[2],
-abs(b1$Estimate[2]-b3_adh$Estimate[2])/b3$Estimate[2],
-
-b4$Estimate[2],
-b4$HPDI_2.5[2],
-b4$HPDI_97.5[2],
-b4_adh$Estimate[2],
-b4_adh$HPDI_2.5[2],
-b4_adh$HPDI_97.5[2],
-b4$Estimate[2]-b4_adh$Estimate[2],
-abs(b4$Estimate[2]-b4_adh$Estimate[2])/b4$Estimate[2],
 
 
 
@@ -718,28 +683,27 @@ adh_tab <- matrix(c(
   sprintf("%.3f (%.3f, %.3f)", b1$Estimate[2], b1$HPDI_2.5[2], b1$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b1_adh$Estimate[2], b1_adh$HPDI_2.5[2], b1_adh$HPDI_97.5[2]),
   sprintf("%.3f", b1$Estimate[2]-b1_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs(b1$Estimate[2]-b1_adh$Estimate[2])/b1$Estimate[2]),
+  sprintf("%.1f%%", 100*abs((b1$Estimate[2]-b1_adh$Estimate[2])/b1$Estimate[2])),
   
   sprintf("%.3f (%.3f, %.3f)", b2$Estimate[2], b2$HPDI_2.5[2], b2$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b2_adh$Estimate[2], b2_adh$HPDI_2.5[2], b2_adh$HPDI_97.5[2]),
   sprintf("%.3f", b2$Estimate[2]-b2_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs(b2$Estimate[2]-b2_adh$Estimate[2])/b2$Estimate[2]),
+  sprintf("%.1f%%", 100*abs((b2$Estimate[2]-b2_adh$Estimate[2])/b2$Estimate[2])),
   
   sprintf("%.3f (%.3f, %.3f)", b3$Estimate[2], b3$HPDI_2.5[2], b3$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b3_adh$Estimate[2], b3_adh$HPDI_2.5[2], b3_adh$HPDI_97.5[2]),
   sprintf("%.3f", b3$Estimate[2]-b3_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs(b3$Estimate[2]-b3_adh$Estimate[2])/b3$Estimate[2]),
+  sprintf("%.1f%%", 100*abs((b3$Estimate[2]-b3_adh$Estimate[2])/b3$Estimate[2])),
   
   sprintf("%.3f (%.3f, %.3f)", b4$Estimate[2], b4$HPDI_2.5[2], b4$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b4_adh$Estimate[2], b4_adh$HPDI_2.5[2], b4_adh$HPDI_97.5[2]),
   sprintf("%.3f", b4$Estimate[2]-b4_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs(b4$Estimate[2]-b4_adh$Estimate[2])/b4$Estimate[2])
-), byrow = TRUE, ncol = 4)
+  sprintf("%.1f%%", 100*abs((b4$Estimate[2]-b4_adh$Estimate[2])/b4$Estimate[2]))), byrow = TRUE, ncol = 4)
 
-colnames(table_mat) <- c("Crude Estimate (95% HPDI)", "Adjusted Estimate (95% HPDI)", "Difference", "Percent Difference")
-rownames(table_mat) <- c("Log Viral Load", "CD4+ T cell Count", "Mental Q.O.L. Score", "Physical Q.O.L. Score")
+colnames(adh_tab) <- c("Crude Estimate (95% HPDI)", "Adjusted Estimate (95% HPDI)", "Difference", "Percent Difference")
+rownames(adh_tab) <- c("Log Viral Load", "CD4+ T cell Count", "Mental Q.O.L. Score", "Physical Q.O.L. Score")
 
-table_mat
+kableExtra::kable(noquote(adh_tab))
 ###adherence into 2 categories
 ## Descriptively talk about adherence 
 #t1
