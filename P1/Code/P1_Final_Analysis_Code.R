@@ -591,29 +591,7 @@ rownames(bayes_table_matrix) <- c("log Viral Load", "CD4+ T Cell Count", "Mental
 knitr::kable(bayes_table_matrix)
 #Table 1:
 
-library(table1)
-hivdat_clean$ADH_cat <- ifelse(hivdat_clean$ADH == 1, ">95% Adherence", "<95% Adherence")
-label(hivdat_clean$lVload_0) <- "log(HIV copies per mL of blood)"
-label(hivdat_clean$ADH_cat) <- "Adherence"
-label(hivdat_clean$LEU3N_0) <- "CD4+ T cell Count"
-label(hivdat_clean$AGG_MENT_0) <- "Mental Quality of Life Score"
-label(hivdat_clean$AGG_PHYS_0) <- "Physical Quality of Life Score"
-label(hivdat_clean$educ_cat) <- "Education Level"
-label(hivdat_clean$race_cat) <- "Race"
-label(hivdat_clean$smoke_cat) <- "Smoking Status"
-label(hivdat_clean$BMI) <- "Body Mass Index (BMI)"
-label(hivdat_clean$age_0) <- "Age"
-hivdat_clean$hard_drugs_0 <- as.factor(hivdat_clean$hard_drugs_0)
-label(hivdat_clean$hard_drugs_0) <- "Hard Drug Usage (Yes=1)"
-
-
-t1 <- table1(~lVload_0+LEU3N_0+AGG_MENT_0+AGG_PHYS_0+educ_cat+race_cat+smoke_cat+BMI+age_0+ADH_cat|hard_drugs_0, hivdat_clean,
-             caption="Table of Descriptive Statistics by Drug Use.")
-
-t1<- t1flex(t1,tablefn = "qflextable")
-t1 %>% flextable::fontsize(size = 7, part = "all") %>% 
-  # Reduce font size
-  flextable::autofit()
+ 
 
 
 #t1 is your table 1 object.
@@ -675,35 +653,147 @@ kableExtra::kable(bayes_vs_freq_matrix)
 #ADHERENCE TABLE#####
 #####################
 
+#find the distributions of the crude minus adjusted betas for hard drug use:
+delta_lvload <- fit_lvload$draws("beta[2]") - fit_lvload_adh$draws("beta[2]")
+delta_leu3n <- fit_leu3n$draws("beta[2]") - fit_leu3n_adh$draws("beta[2]")
+delta_agg_ment <- fit_agg_ment$draws("beta[2]") - fit_agg_ment_adh$draws("beta[2]")
+delta_agg_phys <- fit_agg_phys$draws("beta[2]") - fit_agg_phys_adh$draws("beta[2]")
 
 
-
+post_adh_lvload <- mean(delta_lvload > 0)
+post_adh_leu3n <- mean(delta_leu3n > 0)
+post_adh_agg_ment <- mean(delta_agg_ment > 0)
+post_adh_agg_phys <- mean(delta_agg_phys > 0)
 
 adh_tab <- matrix(c(
   sprintf("%.3f (%.3f, %.3f)", b1$Estimate[2], b1$HPDI_2.5[2], b1$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b1_adh$Estimate[2], b1_adh$HPDI_2.5[2], b1_adh$HPDI_97.5[2]),
   sprintf("%.3f", b1$Estimate[2]-b1_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b1$Estimate[2]-b1_adh$Estimate[2])/b1$Estimate[2])),
+  sprintf("%.1f%%", 100*abs((b1$Estimate[2]-b1_adh$Estimate[2])/b1$Estimate[2])),post_adh_lvload,
   
   sprintf("%.3f (%.3f, %.3f)", b2$Estimate[2], b2$HPDI_2.5[2], b2$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b2_adh$Estimate[2], b2_adh$HPDI_2.5[2], b2_adh$HPDI_97.5[2]),
   sprintf("%.3f", b2$Estimate[2]-b2_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b2$Estimate[2]-b2_adh$Estimate[2])/b2$Estimate[2])),
+  sprintf("%.1f%%", 100*abs((b2$Estimate[2]-b2_adh$Estimate[2])/b2$Estimate[2])),post_adh_leu3n,
   
   sprintf("%.3f (%.3f, %.3f)", b3$Estimate[2], b3$HPDI_2.5[2], b3$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b3_adh$Estimate[2], b3_adh$HPDI_2.5[2], b3_adh$HPDI_97.5[2]),
   sprintf("%.3f", b3$Estimate[2]-b3_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b3$Estimate[2]-b3_adh$Estimate[2])/b3$Estimate[2])),
+  sprintf("%.1f%%", 100*abs((b3$Estimate[2]-b3_adh$Estimate[2])/b3$Estimate[2])),post_adh_agg_ment,
   
   sprintf("%.3f (%.3f, %.3f)", b4$Estimate[2], b4$HPDI_2.5[2], b4$HPDI_97.5[2]),
   sprintf("%.3f (%.3f, %.3f)", b4_adh$Estimate[2], b4_adh$HPDI_2.5[2], b4_adh$HPDI_97.5[2]),
   sprintf("%.3f", b4$Estimate[2]-b4_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b4$Estimate[2]-b4_adh$Estimate[2])/b4$Estimate[2]))), byrow = TRUE, ncol = 4)
+  sprintf("%.1f%%", 100*abs((b4$Estimate[2]-b4_adh$Estimate[2])/b4$Estimate[2])), post_adh_agg_phys), byrow = TRUE, ncol = 5)
 
-colnames(adh_tab) <- c("Crude Estimate (95% HPDI)", "Adjusted Estimate (95% HPDI)", "Difference", "Percent Difference")
+colnames(adh_tab) <- c("Crude Estimate (95% HPDI)", "Adjusted Estimate (95% HPDI)", "Difference", "Percent Difference", "Post. Prob. Difference > 0")
 rownames(adh_tab) <- c("Log Viral Load", "CD4+ T cell Count", "Mental Q.O.L. Score", "Physical Q.O.L. Score")
 
 kableExtra::kable(noquote(adh_tab))
 ###adherence into 2 categories
 ## Descriptively talk about adherence 
 #t1
+
+
+
+
+
+
+
+library(posterior)
+library(kableExtra)
+
+# Function to compute HPDI without rethinking
+hpdi <- function(x, prob = 0.95) {
+  x <- sort(as.numeric(x))
+  n <- length(x)
+  m <- ceiling(prob * n)
+  widths <- x[(m+1):n] - x[1:(n-m)]
+  i <- which.min(widths)
+  c(lower = x[i], upper = x[i+m])
+}
+
+# Function to format mean and HPDI
+fmt_hpdi <- function(x, digits = 3) {
+  h <- hpdi(x, 0.95)
+  sprintf(paste0("%.",digits,"f (%.",digits,"f, %.",digits,"f)"),
+          mean(x), h[1], h[2])
+}
+
+# Extract crude and adjusted posterior draws
+beta_lvload      <- as.vector(fit_lvload$draws("beta[2]"))
+beta_lvload_adh  <- as.vector(fit_lvload_adh$draws("beta[2]"))
+
+beta_leu3n       <- as.vector(fit_leu3n$draws("beta[2]"))
+beta_leu3n_adh   <- as.vector(fit_leu3n_adh$draws("beta[2]"))
+
+beta_agg_ment    <- as.vector(fit_agg_ment$draws("beta[2]"))
+beta_agg_ment_adh<- as.vector(fit_agg_ment_adh$draws("beta[2]"))
+
+beta_agg_phys    <- as.vector(fit_agg_phys$draws("beta[2]"))
+beta_agg_phys_adh<- as.vector(fit_agg_phys_adh$draws("beta[2]"))
+
+# Compute difference distributions
+delta_lvload   <- beta_lvload   - beta_lvload_adh
+delta_leu3n    <- beta_leu3n    - beta_leu3n_adh
+delta_agg_ment <- beta_agg_ment - beta_agg_ment_adh
+delta_agg_phys <- beta_agg_phys - beta_agg_phys_adh
+
+# Posterior probabilities
+post_adh_lvload   <- mean(delta_lvload > 0)
+post_adh_leu3n    <- mean(delta_leu3n > 0)
+post_adh_agg_ment <- mean(delta_agg_ment > 0)
+post_adh_agg_phys <- mean(delta_agg_phys > 0)
+
+# Build table
+adh_tab <- matrix(c(
+  
+  sprintf("%.3f (%.3f, %.3f)", b1$Estimate[2], b1$HPDI_2.5[2], b1$HPDI_97.5[2]),
+  sprintf("%.3f (%.3f, %.3f)", b1_adh$Estimate[2], b1_adh$HPDI_2.5[2], b1_adh$HPDI_97.5[2]),
+  fmt_hpdi(delta_lvload),
+  sprintf("%.3f", post_adh_lvload),
+  
+  sprintf("%.3f (%.3f, %.3f)", b2$Estimate[2], b2$HPDI_2.5[2], b2$HPDI_97.5[2]),
+  sprintf("%.3f (%.3f, %.3f)", b2_adh$Estimate[2], b2_adh$HPDI_2.5[2], b2_adh$HPDI_97.5[2]),
+  fmt_hpdi(delta_leu3n),
+  sprintf("%.3f", post_adh_leu3n),
+  
+  sprintf("%.3f (%.3f, %.3f)", b3$Estimate[2], b3$HPDI_2.5[2], b3$HPDI_97.5[2]),
+  sprintf("%.3f (%.3f, %.3f)", b3_adh$Estimate[2], b3_adh$HPDI_2.5[2], b3_adh$HPDI_97.5[2]),
+  fmt_hpdi(delta_agg_ment),
+  sprintf("%.3f", post_adh_agg_ment),
+  
+  sprintf("%.3f (%.3f, %.3f)", b4$Estimate[2], b4$HPDI_2.5[2], b4$HPDI_97.5[2]),
+  sprintf("%.3f (%.3f, %.3f)", b4_adh$Estimate[2], b4_adh$HPDI_2.5[2], b4_adh$HPDI_97.5[2]),
+  fmt_hpdi(delta_agg_phys),
+  sprintf("%.3f", post_adh_agg_phys)
+  
+), byrow = TRUE, ncol = 4)
+
+# Labels
+colnames(adh_tab) <- c(
+  "Crude Estimate (95% HPDI)",
+  "Adjusted Estimate (95% HPDI)",
+  "Difference (95% HPDI)",
+  "Post. Prob. Difference > 0"
+)
+
+rownames(adh_tab) <- c(
+  "Log Viral Load",
+  "CD4+ T cell Count",
+  "Mental Q.O.L. Score",
+  "Physical Q.O.L. Score"
+)
+
+# Display table
+kable(noquote(adh_tab))
+
+
+
+
+
+
+
+
+
+
