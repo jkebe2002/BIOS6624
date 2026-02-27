@@ -19,7 +19,7 @@ header-includes:
 
 
 
-```{r ggplots}
+```{r ggplots,eval=FALSE}
 library(gridExtra)
 grid.arrange(p_lvl0, p_leu3n0, p_aggment0, p_aggphys0, p_lvl2, p_leu3n2, p_aggment2, p_aggphys2, nrow=2, ncol=4)
 
@@ -27,75 +27,68 @@ grid.arrange(p_lvl0, p_leu3n0, p_aggment0, p_aggphys0, p_lvl2, p_leu3n2, p_aggme
 # Introduction
 
 Approximately 0.5 page.
-• Briefly describe the project including:
-o data received from the investigator
-o the scientific hypothesis of interest
-• Rephrase the scientific hypothesis of interest into testable statistical hypotheses.
-• Note this is NOT a scientific introduction to a paper and should give information
+Briefly describe the project including:
+ data received from the investigator
+ the scientific hypothesis of interest
+ Rephrase the scientific hypothesis of interest into testable statistical hypotheses.
+ Note this is NOT a scientific introduction to a paper and should give information
 pertinent to the data analysis, not more general biology background.
 
 
+Human Immunodeficiency Virus (HIV) is a devastating disease that attacks the body's immune system. Highly Active Antiretroviral Treatment is the standard treatment for those infected. Using data collected from the Multicenter AIDs Cohort Study, with up to 8 years of data collected on a prospective cohort of homosexual and bisexual men infected with AIDs and treated regularly with HAART, we are interested in whether outcomes after two years differ for hard drug users and those that do not use hard drugs. We are interested in whether the difference from baseline to 2 years of our 4 outcomes of interest (HIV copies / ml blood, CD4+ T cell count, SF-36 Quality of Life Measures, Mental and Physical) is significant when comparing hard drug users to non-hard drug users, as well as whether this difference can be explained by self-reported adherence at 2 years. Variables of interest included in the data include but are not limited to hard drug use, the aforementioned outcomes, age, race, education level, BMI, and smoking status. Other covariates, such as lab values, are partially available with high rates of missingness.
+
 # Methods
-• Approximately 2 pages.
-• Should be written in past tense and should NOT include any results.
-• A brief description of data management and any methods used to clean the data. This
-may include, but is not limited to:
-o Methods used to identify outliers or potentially erroneous values.
-o Describing any new variables you calculated from the dataset, for example,
-classifying subjects based on a continuous variable or calculating BMI from
-height and weight.
-o Describing any filtering of the dataset, for example limiting the dataset to the time
-range and/or population of interest to address the research question
-• An in-depth description of methods used to analyze the data. This may include, but is not
+ Approximately 2 pages.
+ An in-depth description of methods used to analyze the data. This may include, but is not
 limited to:
-o A brief description of preliminary data analysis methods and descriptive statistic
+ A brief description of preliminary data analysis methods and descriptive statistic
 methods.
-o A description of the statistical model used to analyze the data
-▪ Type of model
-▪ Outcome variable
-▪ Primary explanatory variables
-▪ Potential covariates, including confounders, mediators, effect modifiers,
-and precision variables
+ A description of the statistical model used to analyze the data
+ -add info. on CMDSTAN
 Name
 Date
 - 3 -
-o If you are unsure of which variables will be included in your model a priori,
-describe your model selection strategy
-o Describe how you will test the hypotheses stated in the introduction.
-▪ For example, in a regression modelling setting, which coefficients or
+
+ Describe how you will test the hypotheses stated in the introduction.
+ For example, in a regression modelling setting, which coefficients or
 combination of coefficients will you test?
-▪ What type of statistical test will you use (t-test, F-test, Chi-square test,
+ What type of statistical test will you use (t-test, F-test, Chi-square test,
 likelihood ratio test…)?
-▪ What level test will be used to determine statistical significance?
-▪ Did you adjust for multiple comparisons?
-• Justify and explain your data analysis approach
-o How does this approach address the research question?
-o Why is this approach appropriate for the type of data you are analyzing?
-• Do NOT include equations, unless completely necessary. Any equations must be written
+What level test will be used to determine statistical significance?
+ Did you adjust for multiple comparisons?
+ Justify and explain your data analysis approach
+ How does this approach address the research question?
+ Why is this approach appropriate for the type of data you are analyzing?
+ Do NOT include equations, unless completely necessary. Any equations must be written
 with correct statistical notation and fully explained in terms a non-statistician can
 understand.
 
+Viral load (HIV copies / ml blood) was log transformed due to being nonnegative and highly right skewed. We filtered data to data for years 0 and 2. We considered patients who had all outcomes measured at the two time points in order to draw inference on the same population for each outcome, reducing the sample size from 715 to 476.
+Data is assumed to be missing completely at random, and complete case analysis is utilized. We redefined variable missingness using the missing definitions in the data dictionary. We looked at missingness rates of variables against factors of the outcomes and primary predictor, and found no concerning trends. For example, we saw similar rates of missingness across values of CD4+ T cell count, so we were not concerned about data being missing due to poor immunological conditions. There was also not a strong missingness pattern over time, so dropout was not a concern especially in the first two years. Missing data visualizations are available in the appendix. For complete case analysis we dropped 13 participants with missing baseline BMI, resulting in a final sample size of 463. BMI values higher than 250 or less than 0 were considered missing. We calculated difference in log viral load, CD4+ T cell count, and the quality of life scores from baseline to year 2 as the outcomes of interest. We considered baseline measures for hard drug use and other predictors in order to have pre-treatment values to adjust for, and considered adherence at year 2. Race, education, and adherence were aggregated into 2 categories due to imbalanced proportions across categories and to avoid inflating the number of model parameters. We used non-Hispanic White and other for race, college degree and higher vs. none for education, and 95% adherence or better vs. worse as the respective binary categories, at the suggestion of the investigator.
 
+- primary data analysis
+
+The primary research question was addressed using multiple linear regression in both a Bayesian and frequentist setting, with outcomes as a function of hard drug use, adjusting for baseline age, sex, BMI, education level, and race, as these were the standard variables to adjust for according to the investigator. Bayesian analysis assumes that the effect estimate has a distribution. For prior distributions of the effects of our predictors, we used noninformative normal priors with mean 1 for the intercept and 0 for the predictors, with standard deviation 100. The prior for sigma was a half-normal with mean 0 and standard deviation 100. We assessed the mean of the posterior distribution of the estimate for the effect of hard drug use for the four outcome models, as well as the 95% highest posterior density interval and posterior probability of a clinically meaningful difference to answer the questions of interest. Clinically meaningful differences, according to the investigator, were .5 log copies HIV per ml blood for log viral load, 50 cells/mm$^3$ for CD4+ T cell count, and 2 points for the quality of life measures. Bayesian estimates and error measures were compared to frequentist estimates to assess the validity of the Bayesian approach. We also fit Bayesian multiple linear regression models excluding hard drug use for model fit assessment, using change in the model's Leave-One-Out Cross-Validation Information Criterion (LOO-IC), a Bayesian measure of model predictive accuracy. To study the effect of adherence, we modeled the outcomes against drug use in addition to adherence, adjusting for aforementioned covariates. Therefore we fit 16 models total.
 
 # Results
-• Approximately 1-1.5 pages
-• Present results for analyses described in the methods. In addition to describing the results
+Approximately 1-1.5 pages
+Present results for analyses described in the methods. In addition to describing the results
 of statistical testing this includes:
-o Descriptive statistics
-o If model selection strategies were use, the variables included in the final model
-• Use Tables and Figures as appropriate
+ Descriptive statistics
+ If model selection strategies were use, the variables included in the final model
+ Use Tables and Figures as appropriate
 Name
 Date
 - 4 -
-• Include full interpretation of statistical results for the main findings in the text, including:
-o point estimates
-o confidence bounds
-o p-values
-o interpretation of the results of tests
+ Include full interpretation of statistical results for the main findings in the text, including:
+ point estimates
+ confidence bounds
+ p-values
+ interpretation of the results of tests
 
 
 # Conclusions / Discussion
-• 0.5-1 page
-• Interpret your results in context of scientific question(s).
-• Discuss any limitations of your analysis that may affect interpretation or that require
+ 0.5-1 page
+ Interpret your results in context of scientific question(s).
+ Discuss any limitations of your analysis that may affect interpretation or that require
 additional consideration by the investigator

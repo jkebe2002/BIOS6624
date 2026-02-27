@@ -86,8 +86,8 @@ hivdat %>%
 
 #I would use FRP not FP
 
-
-gg_miss_fct(hivdat, years)
+hivdat$hard_drugs <- as.factor(hivdat$hard_drugs)
+gg_miss_fct(hivdat, hard_drugs)
 vis_miss(hivdat)
 
 
@@ -123,6 +123,21 @@ hivdat_0$diff_AGG_PHYS<-diff_AGG_PHYS$diff_AGG_PHYS
 
 
 #in hivdat_0, all variables are baseline measures, and diff_X measures are difference from 2 yrs to baseline....
+
+
+
+#Missingness as function of treatment and outcomes
+library(tidyverse)
+
+hivdat$ment_cat <- cut(hivdat$AGG_MENT, breaks = 10)
+hivdat$phys_cat <- cut(hivdat$AGG_PHYS, breaks = 10)
+hivdat$LEU3N_cat <- cut(hivdat$LEU3N, breaks = 10)
+hivdat$VLOAD_cat <- cut(hivdat$VLOAD, breaks = 10)
+gg_miss_fct(hivdat, ment_cat)
+gg_miss_fct(hivdat, phys_cat)
+gg_miss_fct(hivdat, LEU3N_cat)
+gg_miss_fct(hivdat, VLOAD_cat)
+
 
 
 ```

@@ -19,7 +19,6 @@ library(gridExtra)
 
 #Here, we create histgrams of distribution of each outcome at year 0 and year 2 stratified by drug use.
 #############
-create_histograms <- function() {
   p_lvl0 <- ggplot(data=hivdat_clean, aes(x=lVload_0, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
     theme_bw()+xlab("Log Viral Load (Baseline)")+
@@ -68,12 +67,12 @@ create_histograms <- function() {
   
   p_aggphys2 <- ggplot(data=hivdat_clean, aes(x=AGG_PHYS_2, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Physical Quality of Life Score (Baseline)")+
+    theme_bw()+xlab("Physical Quality of Life Score (Year 2)")+
     labs(fill = "Hard Drug Use")
   
   #Put this line in the main report to show histograms
   grid.arrange(p_lvl0, p_leu3n0, p_aggment0, p_aggphys0, p_lvl2, p_leu3n2, p_aggment2, p_aggphys2, nrow=2, ncol=4)
-}
+
 
 
 
@@ -559,34 +558,41 @@ freq_agg_phys <- lm(diff_AGG_PHYS~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+a
 clinic_vals<- c(.5,50,2,2)
 
 postprob <- function(q, mean, sd) {
-  return(1+pnorm(-q,mean=mean, sd=sd, lower.tail = FALSE)-pnorm(q,mean=mean,sd=sd,lower.tail = TRUE))
+  return(pnorm(-q,mean=mean, sd=sd, lower.tail = TRUE)+pnorm(q,mean=mean,sd=sd,lower.tail = FALSE))
 }
-bayes_table_matrix <- matrix(c(b1$Estimate[2],
+
+
+
+bayes_table_matrix <- matrix(c(b1$Estimate[1],
+                               b1$Estimate[2],
                                b1$HPDI_2.5[2],
                                b1$HPDI_97.5[2],
-                               postprob(q=clinic_vals[1],mean=b1$Estimate[2],sd=b1$Std_Dev[2]),
+                               postprob(clinic_vals[1],mean = b1$Estimate[2], sd = b1$Std_Dev[2]),
                                loo1$looic,
                                loo1_delt,
+                               b1$Estimate[1],
                                b2$Estimate[2],
                                b2$HPDI_2.5[2],
                                b2$HPDI_97.5[2],
-                               pnorm(clinic_vals[2],mean=b2$Estimate[2],sd=b2$Std_Dev[2],lower.tail = TRUE),
+                               postprob(clinic_vals[2],mean = b2$Estimate[2], sd = b2$Std_Dev[2]),
                                loo2$looic,
                                loo2_delt,
+                               b1$Estimate[1],
                                b3$Estimate[2],
                                b3$HPDI_2.5[2],
                                b3$HPDI_97.5[2],
-                               pnorm(clinic_vals[3],mean=b3$Estimate[2],sd=b3$Std_Dev[2],lower.tail = TRUE),
+                               postprob(clinic_vals[3],mean = b3$Estimate[2], sd = b3$Std_Dev[2]),
                                loo3$looic,
                                loo3_delt,
+                               b1$Estimate[1],
                                b4$Estimate[2],
                                b4$HPDI_2.5[2],
                                b4$HPDI_97.5[2],
-                               pnorm(clinic_vals[4],mean=b4$Estimate[1],sd=b4$Std_Dev[2],lower.tail = TRUE),
+                               postprob(clinic_vals[4],mean = b4$Estimate[2], sd = b4$Std_Dev[2]),
                                loo4$looic,
                                loo4_delt),
-                             byrow = TRUE, ncol = 6)
-colnames(bayes_table_matrix) <- c("Hard Drugs Effect Estimate", "2.5% HPDI", "97.5% HPDI", "Post. Prob.", "Model LOO-IC", "Delta LOO-IC (Model w/o Hard Drug Use)")
+                             byrow = TRUE, ncol = 7)
+colnames(bayes_table_matrix) <- c("Treatment Effect (Non-Users)","Hard Drugs Effect Estimate", "2.5% HPDI", "97.5% HPDI", "Post. Prob.", "Model LOO-IC", "Delta LOO-IC (Model w/o Hard Drug Use)")
 rownames(bayes_table_matrix) <- c("log Viral Load", "CD4+ T Cell Count", "Mental Quality of Life Score", "Physical Quality of Life Score")
 knitr::kable(bayes_table_matrix)
 #Table 1:
