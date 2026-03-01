@@ -133,11 +133,12 @@ hivdat$ment_cat <- cut(hivdat$AGG_MENT, breaks = 10)
 hivdat$phys_cat <- cut(hivdat$AGG_PHYS, breaks = 10)
 hivdat$LEU3N_cat <- cut(hivdat$LEU3N, breaks = 10)
 hivdat$VLOAD_cat <- cut(hivdat$VLOAD, breaks = 10)
-gg_miss_fct(hivdat, ment_cat)
-gg_miss_fct(hivdat, phys_cat)
-gg_miss_fct(hivdat, LEU3N_cat)
-gg_miss_fct(hivdat, VLOAD_cat)
+gg_miss_fct(hivdat[hivdat$years ==0,], ment_cat)
+gg_miss_fct(hivdat[hivdat$years ==0,], phys_cat)
+gg_miss_fct(hivdat[hivdat$years ==0,], LEU3N_cat)
+gg_miss_fct(hivdat[hivdat$years ==0,], VLOAD_cat)
+gg_miss_fct(hivdat[hivdat$years <3,], hard_drugs)
 
 
-
+#all outcomes, 
 ```

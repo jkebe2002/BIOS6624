@@ -1,6 +1,12 @@
 # Models of outcomes as function of hard drugs etc.
 # Note that code from Camille Moore, PhD was implemented heavily in this section!
 
+
+
+
+
+
+
 # Dependencies 
 library(cmdstanr)
 library(bayesplot)  # diagnostic plots of the MCMC chains
@@ -21,57 +27,52 @@ library(gridExtra)
 #############
   p_lvl0 <- ggplot(data=hivdat_clean, aes(x=lVload_0, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Log Viral Load (Baseline)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7)+theme(legend.position = "none")+xlab("Log Viral Load (Baseline)")+
+    labs(fill = "Drug Use")
   
   p_lvl2 <- ggplot(data=hivdat_clean, aes(x=lVload_2, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Log Viral Load (Year 2)")+
-    labs(fill = "Hard Drug Use")
-  
-  p_lvl2 <- ggplot(data=hivdat_clean, aes(x=lVload_2, group=hard_drugs_0, fill=hard_drugs_0)) +
-    geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Log Viral Load (Year 2)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7,)+theme(legend.position = "none")+xlab("Log Viral Load (Year 2)")+
+    labs(fill = "Drug Use")
   
   
   p_leu3n0 <- ggplot(data=hivdat_clean, aes(x=LEU3N_0, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("CD4+ T Cell Count (Baseline)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7)+theme(legend.position = "none")+xlab("CD4+ T Cell Count (Baseline)")+
+    labs(fill = "Drug Use")
   
   
   p_leu3n2 <- ggplot(data=hivdat_clean, aes(x=LEU3N_2, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("CD4+ T Cell Count ( Year 2)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7)+theme(legend.position = "none")+xlab("CD4+ T Cell Count ( Year 2)")+
+    labs(fill = "Drug Use")
   
   
   p_aggment0 <- ggplot(data=hivdat_clean, aes(x=AGG_MENT_0, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Mental Quality of Life Score (Baseline)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7)+theme(legend.position = "none")+xlab("Mental QOL Score (Baseline)")+
+    labs(fill = "Drug Use")
   
   
   p_aggment2 <- ggplot(data=hivdat_clean, aes(x=AGG_MENT_2, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Mental Quality of Life Score (Year 2)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7)+theme(legend.position = "none")+xlab("Mental QOL Score (Year 2)")+
+    labs(fill = "Drug Use")
   
   
   
   p_aggphys0 <- ggplot(data=hivdat_clean, aes(x=AGG_PHYS_0, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Physical Quality of Life Score (Baseline)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7)+xlab("Physical QOL Score (Baseline)")+
+    labs(fill = "Drug Use")
   
   p_aggphys2 <- ggplot(data=hivdat_clean, aes(x=AGG_PHYS_2, group=hard_drugs_0, fill=hard_drugs_0)) +
     geom_density(adjust=1.5, alpha=.4) +
-    theme_bw()+xlab("Physical Quality of Life Score (Year 2)")+
-    labs(fill = "Hard Drug Use")
+    theme_bw(base_size = 7)+xlab("Physical QOL Score (Year 2)")+
+    labs(fill = "Drug Use")
   
   #Put this line in the main report to show histograms
-  grid.arrange(p_lvl0, p_leu3n0, p_aggment0, p_aggphys0, p_lvl2, p_leu3n2, p_aggment2, p_aggphys2, nrow=2, ncol=4)
+  #grid.arrange(p_lvl0, p_leu3n0, p_aggment0, p_aggphys0, p_lvl2, p_leu3n2, p_aggment2, p_aggphys2, nrow=2, ncol=4)
 
 
 
@@ -211,7 +212,8 @@ fit_lvload <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #t cell count
@@ -220,7 +222,8 @@ fit_leu3n <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #mental health score
@@ -229,7 +232,8 @@ fit_agg_ment <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #phys health score
@@ -238,7 +242,8 @@ fit_agg_phys <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 
@@ -296,7 +301,8 @@ fit_lvload_adh <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #t cell count
@@ -305,7 +311,8 @@ fit_leu3n_adh <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #mental health score
@@ -314,7 +321,8 @@ fit_agg_ment_adh <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #phys health score
@@ -323,7 +331,8 @@ fit_agg_phys_adh <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 
@@ -382,7 +391,8 @@ fit_lvload_no_hard_drugs <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #t cell count
@@ -391,7 +401,8 @@ fit_leu3n_no_hard_drugs <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #mental health score
@@ -400,7 +411,8 @@ fit_agg_ment_no_hard_drugs <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 #phys health score
@@ -409,7 +421,8 @@ fit_agg_phys_no_hard_drugs <- mod$sample(
   chains = 4,
   iter_warmup = 5000,
   iter_sampling = 25000,
-  seed = 2319
+  seed = 2319,
+  show_messages = FALSE
 )
 
 # function to return LOO and WAIC:
@@ -420,10 +433,10 @@ bayes_fit_stats <- function(fit){
   
   # Get LOO-CV and WAIC
   loo_res <- loo(loglik_mat)
-  print(loo_res)
+  #print(loo_res)
   
   waic_res <- waic(loglik_mat)
-  print(waic_res)
+  #print(waic_res)
   return(loo_res)
 }
 
@@ -485,7 +498,7 @@ bayes_table <- function(fit) {
     )
   }) %>% bind_rows()
   
-  print(summary_table)
+  #print(summary_table)
   return(summary_table)
 }
 
@@ -557,157 +570,10 @@ freq_agg_phys <- lm(diff_AGG_PHYS~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+a
 #Bayesian Regression output table
 clinic_vals<- c(.5,50,2,2)
 
+#function to compute posterior probability of value more extreme than q:
 postprob <- function(q, mean, sd) {
   return(pnorm(-q,mean=mean, sd=sd, lower.tail = TRUE)+pnorm(q,mean=mean,sd=sd,lower.tail = FALSE))
 }
-
-
-
-bayes_table_matrix <- matrix(c(b1$Estimate[1],
-                               b1$Estimate[2],
-                               b1$HPDI_2.5[2],
-                               b1$HPDI_97.5[2],
-                               postprob(clinic_vals[1],mean = b1$Estimate[2], sd = b1$Std_Dev[2]),
-                               loo1$looic,
-                               loo1_delt,
-                               b1$Estimate[1],
-                               b2$Estimate[2],
-                               b2$HPDI_2.5[2],
-                               b2$HPDI_97.5[2],
-                               postprob(clinic_vals[2],mean = b2$Estimate[2], sd = b2$Std_Dev[2]),
-                               loo2$looic,
-                               loo2_delt,
-                               b1$Estimate[1],
-                               b3$Estimate[2],
-                               b3$HPDI_2.5[2],
-                               b3$HPDI_97.5[2],
-                               postprob(clinic_vals[3],mean = b3$Estimate[2], sd = b3$Std_Dev[2]),
-                               loo3$looic,
-                               loo3_delt,
-                               b1$Estimate[1],
-                               b4$Estimate[2],
-                               b4$HPDI_2.5[2],
-                               b4$HPDI_97.5[2],
-                               postprob(clinic_vals[4],mean = b4$Estimate[2], sd = b4$Std_Dev[2]),
-                               loo4$looic,
-                               loo4_delt),
-                             byrow = TRUE, ncol = 7)
-colnames(bayes_table_matrix) <- c("Treatment Effect (Non-Users)","Hard Drugs Effect Estimate", "2.5% HPDI", "97.5% HPDI", "Post. Prob.", "Model LOO-IC", "Delta LOO-IC (Model w/o Hard Drug Use)")
-rownames(bayes_table_matrix) <- c("log Viral Load", "CD4+ T Cell Count", "Mental Quality of Life Score", "Physical Quality of Life Score")
-knitr::kable(bayes_table_matrix)
-#Table 1:
-
- 
-
-
-#t1 is your table 1 object.
-
-
-##########################
-#Freq. Vs. Bayes Table####
-##########################
-lvload_freq_est <- summary(freq_lvload)$coefficients
-leu3n_freq_est <- summary(freq_leu3n)$coefficients
-aggment_freq_est <- summary(freq_agg_ment)$coefficients
-aggphys_freq_est <- summary(freq_agg_phys)$coefficients
-bayes_vs_freq_matrix <- round(matrix(c(b1$Estimate[2],
-                                       b1$Std_Dev[2],
-                                       b1$HPDI_2.5[2],
-                                       b1$HPDI_97.5[2],
-                                       lvload_freq_est[2,"Estimate"],
-                                       lvload_freq_est[2,"Std. Error"],
-                                       lvload_freq_est[2,"Estimate"]-1.96*lvload_freq_est[2,"Std. Error"],
-                                       lvload_freq_est[2,"Estimate"]+1.96*lvload_freq_est[2,"Std. Error"],
-                                       b2$Estimate[2],
-                                       b2$Std_Dev[2],
-                                       b2$HPDI_2.5[2],
-                                       b2$HPDI_97.5[2],
-                                       leu3n_freq_est[2,"Estimate"],
-                                       leu3n_freq_est[2,"Std. Error"],
-                                       leu3n_freq_est[2,"Estimate"]-1.96*leu3n_freq_est[2,"Std. Error"],
-                                       leu3n_freq_est[2,"Estimate"]+1.96*leu3n_freq_est[2,"Std. Error"],
-                                       b3$Estimate[2],
-                                       b3$Std_Dev[2],
-                                       b3$HPDI_2.5[2],
-                                       b3$HPDI_97.5[2],
-                                       aggment_freq_est[2,"Estimate"],
-                                       aggment_freq_est[2,"Std. Error"],
-                                       aggment_freq_est[2,"Estimate"]-1.96*aggment_freq_est[2,"Std. Error"],
-                                       aggment_freq_est[2,"Estimate"]+1.96*aggment_freq_est[2,"Std. Error"],
-                                       b4$Estimate[2],
-                                       b4$Std_Dev[2],
-                                       b4$HPDI_2.5[2],
-                                       b4$HPDI_97.5[2],
-                                       aggphys_freq_est[2,"Estimate"],
-                                       aggphys_freq_est[2,"Std. Error"],
-                                       aggphys_freq_est[2,"Estimate"]-1.96*aggphys_freq_est[2,"Std. Error"],
-                                       aggphys_freq_est[2,"Estimate"]+1.96*aggphys_freq_est[2,"Std. Error"]),
-                                     byrow = TRUE, ncol = 8),3)
-
-
-colnames(bayes_vs_freq_matrix) <- c("Hard Drugs Effect Posterior Mean (Bayes)","Bayes Std. Dev.", "2.5% HPDI", "97.5% HPDI", 
-                                    "Hard Drugs Effect Estimate (Freq.)", "Freq. Std. Dev.", "2.5% Wald CI", "97.5% Wald CI")
-rownames(bayes_vs_freq_matrix) <- c("log Viral Load", "CD4+ T Cell Count", "Mental Quality of Life Score", "Physical Quality of Life Score")
-
-
-#This is your frequentist comparison table:
-kableExtra::kable(bayes_vs_freq_matrix)
-
-
-
-#####################
-#ADHERENCE TABLE#####
-#####################
-
-#find the distributions of the crude minus adjusted betas for hard drug use:
-delta_lvload <- fit_lvload$draws("beta[2]") - fit_lvload_adh$draws("beta[2]")
-delta_leu3n <- fit_leu3n$draws("beta[2]") - fit_leu3n_adh$draws("beta[2]")
-delta_agg_ment <- fit_agg_ment$draws("beta[2]") - fit_agg_ment_adh$draws("beta[2]")
-delta_agg_phys <- fit_agg_phys$draws("beta[2]") - fit_agg_phys_adh$draws("beta[2]")
-
-
-post_adh_lvload <- mean(delta_lvload > 0)
-post_adh_leu3n <- mean(delta_leu3n > 0)
-post_adh_agg_ment <- mean(delta_agg_ment > 0)
-post_adh_agg_phys <- mean(delta_agg_phys > 0)
-
-adh_tab <- matrix(c(
-  sprintf("%.3f (%.3f, %.3f)", b1$Estimate[2], b1$HPDI_2.5[2], b1$HPDI_97.5[2]),
-  sprintf("%.3f (%.3f, %.3f)", b1_adh$Estimate[2], b1_adh$HPDI_2.5[2], b1_adh$HPDI_97.5[2]),
-  sprintf("%.3f", b1$Estimate[2]-b1_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b1$Estimate[2]-b1_adh$Estimate[2])/b1$Estimate[2])),post_adh_lvload,
-  
-  sprintf("%.3f (%.3f, %.3f)", b2$Estimate[2], b2$HPDI_2.5[2], b2$HPDI_97.5[2]),
-  sprintf("%.3f (%.3f, %.3f)", b2_adh$Estimate[2], b2_adh$HPDI_2.5[2], b2_adh$HPDI_97.5[2]),
-  sprintf("%.3f", b2$Estimate[2]-b2_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b2$Estimate[2]-b2_adh$Estimate[2])/b2$Estimate[2])),post_adh_leu3n,
-  
-  sprintf("%.3f (%.3f, %.3f)", b3$Estimate[2], b3$HPDI_2.5[2], b3$HPDI_97.5[2]),
-  sprintf("%.3f (%.3f, %.3f)", b3_adh$Estimate[2], b3_adh$HPDI_2.5[2], b3_adh$HPDI_97.5[2]),
-  sprintf("%.3f", b3$Estimate[2]-b3_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b3$Estimate[2]-b3_adh$Estimate[2])/b3$Estimate[2])),post_adh_agg_ment,
-  
-  sprintf("%.3f (%.3f, %.3f)", b4$Estimate[2], b4$HPDI_2.5[2], b4$HPDI_97.5[2]),
-  sprintf("%.3f (%.3f, %.3f)", b4_adh$Estimate[2], b4_adh$HPDI_2.5[2], b4_adh$HPDI_97.5[2]),
-  sprintf("%.3f", b4$Estimate[2]-b4_adh$Estimate[2]),
-  sprintf("%.1f%%", 100*abs((b4$Estimate[2]-b4_adh$Estimate[2])/b4$Estimate[2])), post_adh_agg_phys), byrow = TRUE, ncol = 5)
-
-colnames(adh_tab) <- c("Crude Estimate (95% HPDI)", "Adjusted Estimate (95% HPDI)", "Difference", "Percent Difference", "Post. Prob. Difference > 0")
-rownames(adh_tab) <- c("Log Viral Load", "CD4+ T cell Count", "Mental Q.O.L. Score", "Physical Q.O.L. Score")
-
-kableExtra::kable(noquote(adh_tab))
-###adherence into 2 categories
-## Descriptively talk about adherence 
-#t1
-
-
-
-
-
-
-
-library(posterior)
-library(kableExtra)
 
 # Function to compute HPDI without rethinking
 hpdi <- function(x, prob = 0.95) {
@@ -726,6 +592,213 @@ fmt_hpdi <- function(x, digits = 3) {
           mean(x), h[1], h[2])
 }
 
+beta_lvload1  <- as.vector(fit_lvload$draws("beta[1]"))
+beta_lvload2 <- as.vector(fit_lvload$draws("beta[2]"))
+
+delta_lvload <- beta_lvload1+beta_lvload2
+
+hpdi_lvload <- fmt_hpdi(delta_lvload)
+
+
+beta_agg_ment_1   <- as.vector(fit_agg_ment$draws("beta[1]"))
+beta_agg_ment_2 <- as.vector(fit_agg_ment$draws("beta[2]"))
+
+delta_aggment <- beta_agg_ment_1+beta_agg_ment_2
+
+hpdi_aggment <- fmt_hpdi(delta_aggment)
+
+
+beta_agg_phys_1    <- as.vector(fit_agg_phys$draws("beta[1]"))
+beta_agg_phys_2<- as.vector(fit_agg_phys_adh$draws("beta[2]"))
+
+delta_phys <- beta_agg_phys_1+beta_agg_phys_2
+
+hpdi_phys <- fmt_hpdi(delta_phys)
+
+
+
+beta_leu3n1   <- as.vector(fit_leu3n$draws("beta[1]"))
+beta_leu3n2 <- as.vector(fit_leu3n$draws("beta[2]"))
+
+delta_leu3n <- beta_leu3n1+beta_leu3n2
+
+hpdi_leu3n <- fmt_hpdi(delta_leu3n)
+
+
+
+
+
+#Bayes estimate summary table
+bayes_table_matrix <- matrix(c("Treatment effect (Non-users)",
+  sprintf("%.3f (%.3f, %.3f)", round(b1$Estimate[1],3), round(b1$HPDI_2.5[1],3), round(b1$HPDI_97.5[1],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[1], mean=b1$Estimate[1], sd=b1$Std_Dev[1]),3)),
+  sprintf("%.3f", round(loo1$looic,3)),sprintf("%.3f", round(loo1_delt,3)),   
+  "Treatment effect (Users)",
+  hpdi_lvload,
+  sprintf("%.3f", round(postprob(clinic_vals[1], mean=mean(delta_lvload), sd=sd(delta_lvload)),3)),"--","--",   
+  "Effect difference",
+  sprintf("%.3f (%.3f, %.3f)", round(b1$Estimate[2],3), round(b1$HPDI_2.5[2],3), round(b1$HPDI_97.5[2],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[1], mean=b1$Estimate[2], sd=b1$Std_Dev[2]),3)),
+  "--","--",
+  
+  
+  "Treatment effect (Non-users)",
+  sprintf("%.3f (%.3f, %.3f)", round(b2$Estimate[1],3), round(b2$HPDI_2.5[1],3), round(b2$HPDI_97.5[1],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[2], mean=b2$Estimate[1], sd=b2$Std_Dev[1]),3)),
+  sprintf("%.3f", round(loo2$looic,3)),
+  sprintf("%.3f", round(loo2_delt,3)),
+  "Treatment effect (Users)",
+  hpdi_leu3n, sprintf("%.3f", round(postprob(clinic_vals[2], mean=mean(delta_leu3n), sd=sd(delta_leu3n)),3)), "--", "--",
+  "Effect difference",
+  sprintf("%.3f (%.3f, %.3f)", round(b2$Estimate[2],3), round(b2$HPDI_2.5[2],3), round(b2$HPDI_97.5[2],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[2], mean=b2$Estimate[2], sd=b2$Std_Dev[2]),3)), "--", "--",
+  
+  
+  "Treatment effect (Non-users)",
+  sprintf("%.3f (%.3f, %.3f)", round(b3$Estimate[1],3), round(b3$HPDI_2.5[1],3), round(b3$HPDI_97.5[1],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[3], mean=b3$Estimate[1], sd=b3$Std_Dev[1]),3)),
+  sprintf("%.3f", round(loo3$looic,3)),
+  sprintf("%.3f", round(loo3_delt,3)),
+  "Treatment effect (Users)",
+  hpdi_aggment, 
+  sprintf("%.3f", round(postprob(clinic_vals[3], mean=mean(delta_aggment), sd=sd(delta_aggment)),3)), "--", "--",
+  "Effect difference",
+  sprintf("%.3f (%.3f, %.3f)", round(b3$Estimate[2],3), round(b3$HPDI_2.5[2],3), round(b3$HPDI_97.5[2],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[3], mean=b3$Estimate[2], sd=b3$Std_Dev[2]),3)), "--", "--",
+  
+  
+  "Treatment effect (Non-users)",
+  sprintf("%.3f (%.3f, %.3f)", round(b4$Estimate[1],3), round(b4$HPDI_2.5[1],3), round(b4$HPDI_97.5[1],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[4], mean=b4$Estimate[1], sd=b4$Std_Dev[1]),3)),
+  sprintf("%.3f", round(loo4$looic,3)),
+  sprintf("%.3f", round(loo4_delt,3)),
+  "Treatment effect (Users)",
+  hpdi_phys, 
+  sprintf("%.3f", round(postprob(clinic_vals[4], mean=mean(delta_phys), sd=sd(delta_phys)),3)), "--", "--",
+  "Effect difference",
+  sprintf("%.3f (%.3f, %.3f)", round(b4$Estimate[2],3), round(b4$HPDI_2.5[2],3), round(b4$HPDI_97.5[2],3)),
+  sprintf("%.3f", round(postprob(clinic_vals[4], mean=b4$Estimate[2], sd=b4$Std_Dev[2]),3)), "--", "--"
+),
+byrow = TRUE, ncol = 5)
+colnames(bayes_table_matrix) <- c("", "Estimate (95% HPDI)", "Post. Prob.", "Model LOO-IC", "Delta LOO-IC (Model w/o Hard Drug Use)")
+rownames(bayes_table_matrix) <- c("log Viral Load","","", 
+                                  "CD4+ T Cell Count","","", 
+                                  "Mental QOL Score", "","", "Physical QOL Score",
+                                  "","")
+knitr::kable(bayes_table_matrix)
+
+
+##########################
+#Freq. Vs. Bayes Table####
+##########################
+# Function to compute HPDI without rethinking
+hpdi <- function(x, prob = 0.95) {
+  x <- sort(as.numeric(x))
+  n <- length(x)
+  m <- ceiling(prob * n)
+  widths <- x[(m+1):n] - x[1:(n-m)]
+  i <- which.min(widths)
+  c(lower = x[i], upper = x[i+m])
+}
+
+# Function to format mean and HPDI
+fmt_hpdi <- function(x, digits = 3) {
+  h <- hpdi(x, 0.95)
+  sprintf(paste0("%.",digits,"f (%.",digits,"f, %.",digits,"f)"),
+          mean(x), h[1], h[2])
+}
+
+
+
+
+
+beta_agg_phys_1    <- as.vector(fit_agg_phys$draws("beta[1]"))
+beta_agg_phys_2<- as.vector(fit_agg_phys_adh$draws("beta[2]"))
+
+delta_phys <- beta_agg_phys_1+beta_agg_phys_2
+
+#fmt_hpdi(delta_phys)
+
+
+
+beta_leu3n1   <- as.vector(fit_leu3n$draws("beta[1]"))
+beta_leu3n2 <- as.vector(fit_leu3n$draws("beta[2]"))
+
+delta_leu3n <- beta_leu3n1+beta_leu3n2
+
+#fmt_hpdi(delta_leu3n)
+
+# frequentist summaries
+lvload_freq_est <- summary(freq_lvload)$coefficients
+leu3n_freq_est  <- summary(freq_leu3n)$coefficients
+aggment_freq_est <- summary(freq_agg_ment)$coefficients
+aggphys_freq_est <- summary(freq_agg_phys)$coefficients
+
+# function to format estimate and CI
+fmt_ci <- function(est, lower, upper, digits=3) {
+  paste0(
+    format(round(est, digits), nsmall=digits),
+    " (",
+    format(round(lower, digits), nsmall=digits),
+    ", ",
+    format(round(upper, digits), nsmall=digits),
+    ")"
+  )
+}
+
+# construct table
+bayes_vs_freq_matrix <- matrix(c(
+  
+  # log Viral Load
+  fmt_ci(b1$Estimate[2], b1$HPDI_2.5[2], b1$HPDI_97.5[2]),
+  fmt_ci(lvload_freq_est[2,"Estimate"],
+         lvload_freq_est[2,"Estimate"] - 1.96*lvload_freq_est[2,"Std. Error"],
+         lvload_freq_est[2,"Estimate"] + 1.96*lvload_freq_est[2,"Std. Error"]),
+  
+  # CD4+ T Cell Count
+  fmt_ci(b2$Estimate[2], b2$HPDI_2.5[2], b2$HPDI_97.5[2]),
+  fmt_ci(leu3n_freq_est[2,"Estimate"],
+         leu3n_freq_est[2,"Estimate"] - 1.96*leu3n_freq_est[2,"Std. Error"],
+         leu3n_freq_est[2,"Estimate"] + 1.96*leu3n_freq_est[2,"Std. Error"]),
+  
+  # Mental QoL
+  fmt_ci(b3$Estimate[2], b3$HPDI_2.5[2], b3$HPDI_97.5[2]),
+  fmt_ci(aggment_freq_est[2,"Estimate"],
+         aggment_freq_est[2,"Estimate"] - 1.96*aggment_freq_est[2,"Std. Error"],
+         aggment_freq_est[2,"Estimate"] + 1.96*aggment_freq_est[2,"Std. Error"]),
+  
+  # Physical QoL
+  fmt_ci(b4$Estimate[2], b4$HPDI_2.5[2], b4$HPDI_97.5[2]),
+  fmt_ci(aggphys_freq_est[2,"Estimate"],
+         aggphys_freq_est[2,"Estimate"] - 1.96*aggphys_freq_est[2,"Std. Error"],
+         aggphys_freq_est[2,"Estimate"] + 1.96*aggphys_freq_est[2,"Std. Error"])
+  
+), byrow = TRUE, ncol = 2)
+
+# column and row names
+colnames(bayes_vs_freq_matrix) <- c(
+  "Bayesian Estimate (95% HPDI)",
+  "Frequentist Estimate (95% Wald CI)"
+)
+
+rownames(bayes_vs_freq_matrix) <- c(
+  "log Viral Load",
+  "CD4+ T Cell Count",
+  "Mental Quality of Life Score",
+  "Physical Quality of Life Score"
+)
+#This is your frequentist comparison table:
+kableExtra::kable(noquote(bayes_vs_freq_matrix))
+
+
+
+#####################
+#ADHERENCE TABLE#####
+#####################
+
+library(posterior)
+library(kableExtra)
+
 # Extract crude and adjusted posterior draws
 beta_lvload      <- as.vector(fit_lvload$draws("beta[2]"))
 beta_lvload_adh  <- as.vector(fit_lvload_adh$draws("beta[2]"))
@@ -738,6 +811,9 @@ beta_agg_ment_adh<- as.vector(fit_agg_ment_adh$draws("beta[2]"))
 
 beta_agg_phys    <- as.vector(fit_agg_phys$draws("beta[2]"))
 beta_agg_phys_adh<- as.vector(fit_agg_phys_adh$draws("beta[2]"))
+
+
+
 
 # Compute difference distributions
 delta_lvload   <- beta_lvload   - beta_lvload_adh
@@ -793,6 +869,66 @@ rownames(adh_tab) <- c(
 
 # Display table
 kable(noquote(adh_tab))
+
+
+#Table 1:
+
+#t1 is your table 1 object.
+library(gtsummary)
+library(dplyr)
+
+# Convert to factor if needed
+hivdat_clean <- hivdat_clean %>%
+  mutate(
+    hard_drugs_0 = factor(hard_drugs_0)
+  )
+
+# Create gtsummary Table 1
+t1 <- hivdat_clean %>%
+  select(
+    hard_drugs_0,
+    lVload_0,
+    LEU3N_0,
+    AGG_MENT_0,
+    AGG_PHYS_0,
+    educ_cat,
+    race_cat,
+    smoke_cat,
+    BMI,
+    age_0,
+    ADH_cat
+  ) %>%
+  tbl_summary(
+    by = hard_drugs_0,
+    label = list(
+      lVload_0   ~ "log(HIV copies per mL of blood)",
+      LEU3N_0    ~ "CD4+ T cell Count",
+      AGG_MENT_0 ~ "Mental Quality of Life Score",
+      AGG_PHYS_0 ~ "Physical Quality of Life Score",
+      educ_cat   ~ "Education Level",
+      race_cat   ~ "Race",
+      smoke_cat  ~ "Smoking Status",
+      BMI        ~ "Body Mass Index (BMI)",
+      age_0      ~ "Age",
+      ADH_cat    ~ "Adherence"
+    ),
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = all_continuous() ~ 2,
+    missing = "no"
+  ) %>%
+  modify_header(label = "**Variable**") %>%
+  modify_caption("**Table of Descriptive Statistics by Drug Use**") %>%
+  bold_labels()
+
+# Print table
+#t1
+
+
+
+#Thanks! Cheers!
 
 
 

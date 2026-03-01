@@ -244,7 +244,7 @@ print(DIC)
 
 draws <- as_draws_array(fit$draws())  # dimensions: iterations x chains x parameters
 draws_df <- as_draws_df(fit$draws())  # tidy format for bayesplot / ggplot
-params <- c("beta[1]", "beta[2]", "beta[3]", "sigma")
+params <- c("beta[1]", "beta[2]", "sigma")
 
 # Trace plots
 # Trace plots show whether chains are mixing well and exploring the parameter space.

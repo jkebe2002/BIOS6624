@@ -1,0 +1,60 @@
+---
+title: "Presentation Tables"
+author: "Jacob Kebe"
+date: "2026-03-01"
+output: html_document
+---
+```{css, echo=FALSE}
+body .main-container {
+  max-width: 1100px !important; /* Adjust the max-width as needed (e.g., 1600px, 100%) */
+  width: 1200px !important;     /* Adjust the width as needed */
+  margin-left: auto;             /* Centers the content */
+  margin-right: auto;            /* Centers the content */
+}
+```
+
+<style type="text/css">
+  .table {
+    width: 1400px; /* or any specific value like 800px */
+  }
+</style>
+
+|                               |                             |Estimate (95% HPDI)          |Post. Prob. |Model LOO-IC |Delta LOO-IC (Model w/o Hard Drug Use) |
+|:------------------------------|:----------------------------|:----------------------------:|:-----------|:------------|:--------------------------------------|
+|log Viral Load                 |Treatment effect (Non-users) |-2.398 (-3.266, -1.562)      |1.000       |1511.120     |-1.945                                 |
+|                               |Treatment effect (Users)     |-2.428 (-3.338, -1.531)      |1.000       |--           |--                                     |
+|                               |Effect difference            |-0.030 (-0.466, 0.398)       |0.025       |--           |--                                     |
+|CD4+ T Cell Count              |Treatment effect (Non-users) |103.274 (0.119, 210.761)     |0.841       |6125.561     |23.372                                 |
+|                               |Treatment effect (Users)     |-44.196 (-161.085, 70.717)   |0.517       |--           |--                                     |
+|                               |Effect difference            |-147.470 (-206.995, -88.128) |0.999       |--           |--                                     |
+|Mental Quality of Life Score   |Treatment effect (Non-users) |6.839 (-1.546, 15.325)       |0.889       |3632.935     |-2.619                                 |
+|                               |Treatment effect (Users)     |7.957 (-1.132, 16.834)       |0.918       |--           |--                                     |
+|                               |Effect difference            |1.118 (-3.246, 5.305)        |0.419       |--           |--                                     |
+|Physical Quality of Life Score |Treatment effect (Non-users) |-0.604 (-6.325, 5.024)       |0.500       |3270.512     |2.452                                  |
+|                               |Treatment effect (Users)     |-4.012 (-10.337, 2.378)      |0.764       |--           |--                                     |
+|                               |Effect difference            |-3.160 (-6.036, -0.268)      |0.785       |--           |--                                     |
+
+
+
+
+
+
+
+|                               |Bayesian Estimate (95% HPDI) |Frequentist Estimate (95% Wald CI) |
+|:------------------------------|:----------------------------:|:----------------------------------:|
+|log Viral Load                 |-0.030 (-0.466, 0.398)       |-0.030 (-0.460, 0.400)             |
+|CD4+ T Cell Count              |-147.470 (-206.995, -88.128) |-164.746 (-227.392, -102.101)      |
+|Mental Quality of Life Score   |1.118 (-3.246, 5.305)        |1.124 (-3.124, 5.372)              |
+|Physical Quality of Life Score |-3.160 (-6.036, -0.268)      |-3.155 (-6.030, -0.281)            |
+
+
+
+
+
+
+|                      |Crude Estimate (95% HPDI)    |Adjusted Estimate (95% HPDI) |Difference (95% HPDI)   |Post. Prob. Difference > 0 |
+|:---------------------|:----------------------------:|:----------------------------:|:-----------------------:|:--------------------------|
+|Log Viral Load        |-0.030 (-0.466, 0.398)       |0.019 (-0.419, 0.447)        |-0.049 (-0.669, 0.556)  |0.438                      |
+|CD4+ T cell Count     |-147.470 (-206.995, -88.128) |-151.453 (-211.103, -92.339) |3.983 (-79.925, 87.948) |0.537                      |
+|Mental Q.O.L. Score   |1.118 (-3.246, 5.305)        |0.862 (-3.396, 5.059)        |0.256 (-5.805, 6.269)   |0.534                      |
+|Physical Q.O.L. Score |-3.160 (-6.036, -0.268)      |-3.407 (-6.203, -0.461)      |0.248 (-3.874, 4.266)   |0.547                      |

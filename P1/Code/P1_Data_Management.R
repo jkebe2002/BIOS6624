@@ -1,5 +1,6 @@
 #Convert raw hiv data file into file for analysis
-
+library(tidyverse)
+library(dplyr)
 
 #source file
 hivdat <- read.csv("~/Downloads/hiv_6624_final.csv")
@@ -36,7 +37,9 @@ hivdat_clean$diff_AGG_MENT <- hivdat_clean$AGG_MENT_2 - hivdat_clean$AGG_MENT_0
 hivdat_clean$diff_AGG_PHYS <- hivdat_clean$AGG_PHYS_2 - hivdat_clean$AGG_PHYS_0
 
 # adherence at year 2
-hivdat_clean$ADH <- hivdat_clean$ADH_2
+hivdat_clean$ADH <- if_else(hivdat_clean$ADH_2>2,1,0)
+hivdat_clean$ADH_cat <- if_else(hivdat_clean$ADH_2>2,"95% Adherence or Higher","Less than 95% Adherence")
+
 
 #education:  5-7 or 1-4 for college educ or higher vs. no college
 hivdat_clean$educ_cat <- if_else(hivdat_clean$EDUCBAS_0>4, "College Degree or Higher", "No College Degree")
