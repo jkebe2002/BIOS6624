@@ -122,7 +122,7 @@ generated quantities {
 mod <- cmdstan_model('~/Documents/GitHub/BIOS6624/P1/Code/linear_regression_half_normal.stan')
 
 #outcomes:
-
+#differences in each outcome bw year 2 and 0
 lvload <- hivdat_clean[!is.na(hivdat_clean$BMI),]$diff_lvload
 leu3n <- hivdat_clean[!is.na(hivdat_clean$BMI),]$diff_LEU3N
 agg_ment <- hivdat_clean[!is.na(hivdat_clean$BMI),]$diff_AGG_MENT
@@ -435,7 +435,7 @@ bayes_fit_stats <- function(fit){
   loo_res <- loo(loglik_mat)
   #print(loo_res)
   
-  waic_res <- waic(loglik_mat)
+  #waic_res <- waic(loglik_mat)
   #print(waic_res)
   return(loo_res)
 }
@@ -560,14 +560,23 @@ bayes_diagnostics <- function(fit){
 
 
 #frequentist models for each outcome:
-freq_lvload   <- lm(diff_lvload~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
-freq_leu3n    <- lm(diff_LEU3N~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
-freq_agg_ment <- lm(diff_AGG_MENT~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
-freq_agg_phys <- lm(diff_AGG_PHYS~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, data=hivdat_clean)
+freq_lvload   <- lm(diff_lvload~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, 
+                    data=hivdat_clean)
+
+freq_leu3n    <- lm(diff_LEU3N~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, 
+                    data=hivdat_clean)
+
+freq_agg_ment <- lm(diff_AGG_MENT~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, 
+                    data=hivdat_clean)
+
+freq_agg_phys <- lm(diff_AGG_PHYS~hard_drugs_0+educ_cat+race_cat+smoke_cat+BMI+age_0, 
+                    data=hivdat_clean)
+
 
 
 
 #Bayesian Regression output table
+#clinically meaningful values for log viral load, t cell count, and QOL score points
 clinic_vals<- c(.5,50,2,2)
 
 #function to compute posterior probability of value more extreme than q:
@@ -575,7 +584,7 @@ postprob <- function(q, mean, sd) {
   return(pnorm(-q,mean=mean, sd=sd, lower.tail = TRUE)+pnorm(q,mean=mean,sd=sd,lower.tail = FALSE))
 }
 
-# Function to compute HPDI without rethinking
+# Function to compute HPDI 
 hpdi <- function(x, prob = 0.95) {
   x <- sort(as.numeric(x))
   n <- length(x)
@@ -592,6 +601,7 @@ fmt_hpdi <- function(x, digits = 3) {
           mean(x), h[1], h[2])
 }
 
+#Computing effect for drug users using beta[1] and beta[2]
 beta_lvload1  <- as.vector(fit_lvload$draws("beta[1]"))
 beta_lvload2 <- as.vector(fit_lvload$draws("beta[2]"))
 
