@@ -25,7 +25,7 @@ We will test the hypothesis that higher presence of inflammatory markers (IL-6, 
 - Benson Figure 15' Delay, Total Correct, \
 - Mnemonic Similarity Task (MST) Proportion Correct, and \
 - Story Recall 1-week delay, total correct. \
-We will also assess whether an increase in inflammatory markers over 1 year affects causes decline in outcomes.
+We will also assess whether an increase in inflammatory markers over 1 year is associated decline in outcomes.
 
 **Aim 2**
 
@@ -33,12 +33,12 @@ We will consider another predictor, amyloid deposition, and test whether its inc
 
 **Models**
 
-For each outcome, we will model the difference over a year predicted by the inflammatory markers at baseline (Aim 1 Hyp 1a.) and difference over a year of markers (1b.), and if significant relationships shown, we will include amyloid deposition at baseline and its interaction with respective predictors in significantly predictive models from Aim 1.
+For each outcome, we will model the difference over a year predicted by the inflammatory markers at baseline (Aim 1 Hyp 1a.) and difference over a year of markers (1b.), and if significant relationships shown, we will include amyloid deposition at baseline and its interaction with respective predictors in significantly predictive models from Aim 1. We will consider dichotomizing amyloid deposition (C.6.d) for ease of interpretability.
 
 **Covariates**
 
-We have information on demographic and health history measures, and will adjust for age, sex, CV risk, immunological health history conditions, and APOE genotype, assessing which conditions to include in the models by analyzing the correlation between the conditions and the other conditions, as well as predictors of interest.
+We have information on demographic and health history measures, and will adjust for age, sex, CV risk, immunological health history conditions, and APOE genotype, assessing which conditions to include in the models by analyzing the correlation between the conditions and the other conditions, as well as predictors of interest to avoid multicollinearity.
 
 **Power Analysis**
 
-I will use power calculations for multiple Linear Regression Overall F-tests, using p=1,4,9, considering each individual predictor (5 including amyloid deposition), the markers together, and the markers with amyloid deposition and interactions (7 power calculations). We can check the power given the investigator's sample size, and propose a sample size to account for .8 power, commenting on how the power may change depending on covariates (precision variables, confounders) included in the model.
+I will use power calculations for correlation, assessing a reasonable correlation under the alternative hypothesis. We can test how much power will be provided given the sample size provided by the investigator, as well as how large a sample would be needed to achieve a power of .7,.8, and .9 to compare. Since we have 5 predictors and 4 outcomes we could adjust the alpha level to .0025 to be conservative.
