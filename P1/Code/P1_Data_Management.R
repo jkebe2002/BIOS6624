@@ -80,7 +80,7 @@ hivdat_clean$BMI <- if_else((hivdat_clean$BMI_0 > 0 & hivdat_clean$BMI_0 < 250),
 
 
 
-
+write_csv(hivdat_clean, "~/Downloads/hivdat_clean.csv")
 
 #Table 1 code:
 

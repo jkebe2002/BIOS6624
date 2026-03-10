@@ -1,0 +1,44 @@
+---
+title: "P2 Interim Analysis Plan"
+author: "Jacob Kebe"
+output: pdf_document
+documentclass: article
+geometry: margin=1in
+fontsize: 12pt
+linestretch: 2
+header-includes:
+  - \usepackage{setspace}
+  - \doublespacing
+  - \usepackage{multirow}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{dcolumn}
+  - \usepackage{fvextra}
+  - \usepackage{bm}
+---
+
+**Aim 1**
+
+We will test the hypothesis that higher presence of inflammatory markers (IL-6, TNF-alpha,MCP-1,Eotaxin-1) at baseline contributes to a decline in cortical thickness and 5 cognitive measures over 1 year, with measures at baseline and 1 year. The cognitive measures are \
+- California Verbal Learning Test-II (CVLT) 20' delay, total correct and \
+- CVLT recognition, D-prime, \
+- Benson Figure 15' Delay, Total Correct, \
+- Mnemonic Similarity Task (MST) Proportion Correct, and \
+- Story Recall 1-week delay, total correct. \
+We will also assess whether an increase in inflammatory markers over 1 year affects causes decline in outcomes.
+
+**Aim 2**
+
+We will consider another predictor, amyloid deposition, and test whether its inclusion and interaction with the predictors in modelling outcomes contributes to decline over one year.
+
+**Models**
+
+For each outcome, we will model the difference over a year predicted by the inflammatory markers at baseline (Aim 1 Hyp 1a.) and difference over a year of markers (1b.), and if significant relationships shown, we will include amyloid deposition at baseline and its interaction with respective predictors in significantly predictive models from Aim 1.
+
+**Covariates**
+
+We have information on demographic and health history measures, and will adjust for age, sex, CV risk, immunological health history conditions, and APOE genotype, assessing which conditions to include in the models by analyzing the correlation between the conditions and the other conditions, as well as predictors of interest.
+
+**Power Analysis**
+
+I will use power calculations for multiple Linear Regression Overall F-tests, using p=1,4,9, considering each individual predictor (5 including amyloid deposition), the markers together, and the markers with amyloid deposition and interactions (7 power calculations). We can check the power given the investigator's sample size, and propose a sample size to account for .8 power, commenting on how the power may change depending on covariates (precision variables, confounders) included in the model.
