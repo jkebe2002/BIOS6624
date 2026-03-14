@@ -33,7 +33,7 @@ We will consider another predictor, amyloid deposition, and test whether its inc
 
 **Models**
 
-For each outcome, we will model the difference over a year predicted by the inflammatory markers at baseline (Aim 1 Hyp 1a.) and difference over a year of markers (1b.), and if significant relationships shown, we will include amyloid deposition at baseline and its interaction with respective predictors in significantly predictive models from Aim 1. We will consider dichotomizing amyloid deposition (C.6.d) for ease of interpretability.
+For each outcome, using linear regression, we will model the difference over a year predicted by all inflammatory markers at baseline (Aim 1 Hyp 1a.) and difference over a year of markers (1b.), and if significant relationships shown in models including all predictors and covariates (overall F test, individual level t-tests), we will include amyloid deposition at baseline and its interaction with respective predictors in significantly predictive models (overall F test) from Aim 1. We will consider dichotomizing amyloid deposition (C.6.d) for ease of interpretability. We will also consider stratifying linear models by predictors, and removing certain covariates, in the presence of strong associations between any of the variables (multicollinearity).
 
 **Covariates**
 
@@ -41,4 +41,4 @@ We have information on demographic and health history measures, and will adjust 
 
 **Power Analysis**
 
-I will use power calculations for correlation, assessing a reasonable correlation under the alternative hypothesis. We can test how much power will be provided given the sample size provided by the investigator, as well as how large a sample would be needed to achieve a power of .7,.8, and .9 to compare. Since we have 5 predictors and 4 outcomes we could adjust the alpha level to .0025 to be conservative.
+I will use power calculations for correlation, since we will eventually perform regression with continuous outcomes and predictors, assessing a reasonable correlation under the alternative hypothesis. We can test how much power will be provided given the sample size provided by the investigator, as well as how large a sample would be needed to achieve a power of .7,.8, and .9 to compare. It may be a good idea to adjust alpha level. We may also need to consider power calculations for overall model tests.

@@ -1,0 +1,59 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+# OUTLINE
+
+# exploratory data analysis
+
+- outliers of multiple infl markers
+- Dropout, missingness patterns, multicollinearity, confounders, precision variables, mediators
+- distributions of variables and variable transformations
+
+Table 1, 
+- list of outcomes ref other sections list of predictors
+- list of potential covariates based on prior research, what has been collected, what has correlation with outcomes, etc.
+
+- how are you filtering and cleaning the data? What are you doing with outliers?
+
+- what figures will you include? what tables will you include?
+
+- What variables will be prioritized in final publ.?
+
+- how will you reference preliminary data results?
+- how are variables coded ?
+
+
+
+# models
+
+- outcome ~ predictor + covariate (assume linear unless lack of fit)
+
+- are changes in outcome correlated with baseline value? models using either baseline or change for predictors 
+
+- amyloid deposition either coninuous or categorical
+  - indirect or nonlinear relationship?????
+  - what model will you assume unless assessment is poort?
+- what beta terms are of interest to you?
+- assessing significance with different variables included in the models
+
+
+assess scatterplots, distributions of variables
+
+# Power
+
+Power to detect given correlation table
+need to be able to justify sample size with .8 power
+1 sample correlation power est. using correlation range from preliminary data
+mention how you got what you got from the preliminary data as well
+
+- if more dropout than expected, what power can you still detect?
+table of power ranges 
+
+comment on presence of confounders and precision variables
+make sure your estimate is conservative
+don't use bonferroni, you have correlated outcomes.
+
+"omnibus testing"
+
