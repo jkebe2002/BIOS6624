@@ -1,0 +1,44 @@
+Risk factors are correlated / binned among each other
+which do you care about more : "Prevalent" lables
+ - are they interested in continuous predictors or only categorical ones.
+
+does follow up end when ANY event is encountered?
+
+
+
+Some variables are of more interest 
+Age, diabetes, blood pressure (systolic).
+Several whether or not to include
+coronary heart disease, blood pressure meds (Y/N), smoking status, Total cholesterol, BMI.
+ - baseline values for all.
+ 
+ Don't want people who have already had a stroke.
+ 
+ Don't need a competing risk model
+ any other events can be treated as censoring.
+ 
+ time varying should just be for diabeties and blood pressure
+ 
+ 365.25 to account for leap year.
+ 
+ covariates can differ in final stratified model.
+ 
+ survivial piece only interested in first period
+ 
+ Introduction: This section describes your understanding of the project and puts into words the (statistical) hypotheses you will be testing/evaluating in the final report (1-2 paragraphs).
+Preliminary methods section: This section describes your data analysis plan, including any data cleaning, as you currently plan to implement. This section can change as you conduct the analysis. (<1 page)
+The data analysis plan should be no more than 1.5 pages double spaced 12 point arial font or similar.
+
+
+Risk profiles
+high blood prsessure,
+
+someone who has diabetes
+
+someone who ahs bP and diabetes
+
+anothers risk profeils we find interesting.
+
+for age 40,50, and 60
+
+What would analysis look like for time-varying?
