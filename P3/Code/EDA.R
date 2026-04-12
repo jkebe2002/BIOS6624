@@ -1,5 +1,6 @@
-framdat <- read_csv("~/Downloads/frmgham2.csv")
+framdat <- read.csv("~/Downloads/frmgham2.csv")
 library(gtsummary)
+library(dplyr)
 
 #Subjects with TIMESTRK 
 framdat <- framdat %>%

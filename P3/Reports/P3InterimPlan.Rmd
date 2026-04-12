@@ -1,0 +1,70 @@
+---
+title: "Project 3 Interim Plan"
+author: "Jacob Kebe"
+output: pdf_document
+documentclass: article
+geometry: margin=1in
+fontsize: 12pt
+linestretch: 2
+header-includes:
+  - \usepackage{setspace}
+  - \doublespacing
+  - \usepackage{multirow}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{dcolumn}
+  - \usepackage{fvextra}
+  - \usepackage{bm}
+---
+**Introduction:** 
+Using data from the Framingham Heart Study (a prospective study of cardiovascular profiles of individuals in Framingham, MA) from 1956 to 1968, we are interested in identifying risk factors related to stroke for both sexes (M/F). We will test whether baseline risk factors such as age, diabetes, systolic blood pressure, coronary heart disease, blood pressure medication use, smoking status, cholesterol, and BMI are significantly associated with the risk of having a stroke for both sex groups over the first 10 years of observations.
+
+**Preliminary Methods:**
+First we will filter data to exclude individuals who had a stroke prior to the beginning of the study. We will also censor all individuals at 10 years post baseline. We will analyze correlation between our baseline predictors (risk factors listed above) and check for concerning multicollinearity, outliers and missingness. We will create two Cox PH models, one for males and one for females, using variable selection to arrive at a final model, including at least age, diabetes and systolic blood pressure, along with other contributory predictors (from those listed above) selected using backward selection with AIC. We will assess violations of Cox PH assumptions, and address limitations to our interpretation of risk profiles. We will calculate risk profiles for individuals at ages 40, 50, and 60 based on whether they have diabetes, high blood pressure, or both, as well as other risk profiles that appear noteworthy based on analysis results. We will also report the change in the risk factors over the 3 year period, commenting on how implementing time-varying predictors would affect future analyses.
+
+```{r chunk1, echo = FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+framdat <- read_csv("~/Downloads/frmgham2.csv")
+library(gtsummary)
+
+#Subjects with TIMESTRK 
+framdat <- framdat %>%
+  filter(TIMESTRK != 0 )
+
+framdat <- framdat %>%
+  filter(PERIOD==1 )
+
+framdat <- framdat %>%
+  mutate(time_obs = pmin(TIMESTRK, ceiling(10*365.25))) %>%
+  select(-c(TIME,HDLC,LDLC,PERIOD,PREVSTRK))
+
+
+
+framdat_m <- framdat %>%
+  filter(SEX==1)
+framdat_f <- framdat %>%
+  filter(SEX==2)
+# YOUR STATUS / EVENT VARIABLE IS STROKE
+
+table1_m <- framdat_m |>
+  tbl_summary(
+    include = c(TOTCHOL, AGE, SYSBP, DIABP, CURSMOKE, CIGPDAY, BMI, DIABETES, BPMEDS, HEARTRTE,
+                GLUCOSE, educ, PREVCHD, PREVAP, PREVMI,  PREVHYP, STROKE, HYPERTEN, time_obs 
+    ), # Specify variables to include (optional)
+    missing = "ifany"                      # Display missing values if any exist
+  )
+
+table1_f <- framdat_f |>
+  tbl_summary(
+    include = c(TOTCHOL, AGE, SYSBP, DIABP, CURSMOKE, CIGPDAY, BMI, DIABETES, BPMEDS, HEARTRTE,
+                GLUCOSE, educ, PREVCHD, PREVAP, PREVMI,  PREVHYP, STROKE, HYPERTEN, time_obs 
+    ), # Specify variables to include (optional)
+    missing = "ifany"                      # Display missing values if any exist
+  )
+
+tbl_merge(
+  tbls = list(table1_m, table1_f),
+  tab_spanner = c("**Male**", "**Female**") ) %>%
+  modify_caption("Baseline characteristics by sex")
+  
+```
