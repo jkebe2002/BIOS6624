@@ -42,3 +42,36 @@ We have information on demographic and health history measures, and will adjust 
 **Power Analysis**
 
 I will use power calculations for correlation, since we will eventually perform regression with continuous outcomes and predictors, assessing a reasonable correlation under the alternative hypothesis. We can test how much power will be provided given the sample size provided by the investigator, as well as how large a sample would be needed to achieve a power of .7,.8, and .9 to compare. It may be a good idea to adjust alpha level. We may also need to consider power calculations for overall model tests.
+
+
+
+- use predictor baseline outcome - how does starting value contribute to change rate?
+
+**Investigator Comments**
+
+- change in outcome of interest in one yaer. \
+
+- not enough information to do the power calculations... \
+
+- settle on correlation - no reasonable estimate in grant yet. \
+- Does the investigator have the preliminary data? \
+- range of correlations to expect \
+- interaction : generally related, is there meaningful cutoff with dichotomous variable \ 
+- think about cutoff when thinking about power for the aim... \
+- controls: to make sure we have range of outcomes. Not interested in comparing control to dx group
+- sample size is 175 \
+- minimum power = .8 \
+
+correlated predictors:  \
+
+won't have different power calculations for different outcomes \
+articulate plan for summarizing and making sense of models \
+
+powering overall test is hard right now  \
+not enoguh info for omnibus test power calculation \
+
+- bonferroni is way too conservative and will eliminate effective power \
+- reference table 3 \ 
+
+ 
+ 

@@ -74,7 +74,8 @@ final_model_f <- step(
 )
 
 
-
+final_model_f_smoking <- coxph(Surv(time_obs,stroke_10yr ) ~ AGE+SYSBP+DIABETES+CURSMOKE, 
+                      data = framdat_f)
 
 
 
@@ -214,87 +215,131 @@ print(plot_final_m_sm)
 # CONFIDENCE INTERVALS #
 ########################
 
-confint_coxph <- function(model, L) {
+confint_coxph <- function(model, L, dat) {
   #returns exponentiated Wald CI's for estimate for different risk profiles
-  est  <- t(L) %*% model$coefficients
-  lower <- est - 1.96*sqrt(t(L) %*% model$var %*% L)
-  upper <- est + 1.96*sqrt(t(L) %*% model$var %*% L)  
-  return(exp(c(est, lower, upper)))
+  # provides risk profile relative to nonsmoker, no diabetes, median blood pressure
+  # L_diff <- L - t(c(median(dat$AGE), median(dat$SYSBP), 0, 0))
+  # est  <- L_diff %*% model$coefficients
+  # lower <- est - 1.96*sqrt(L_diff %*% model$var %*% t(L_diff))
+  # upper <- est + 1.96*sqrt(L_diff %*% model$var %*% t(L_diff) )
+  # return(exp(c(est, lower, upper)))
+  l_df <- data.frame(AGE = L[1], SYSBP = L[2], DIABETES = L[3], CURSMOKE = L[4])
+  survprobs <- survfit(model, newdata = l_df, data = dat)
+
+  s <- summary(survprobs, times = 3652)
+  
+  return(c(
+    sprintf("%.3f%", 100*(1-s$surv[1])),
+    sprintf("%.3f", 100*(1-s$upper[1])),
+    sprintf("%.3f", 11-s$lower[1])
+  ))
+  # [1] "0.423" "0.281" "0.637"
+  
 }
 
-print(confint_coxph(final_model_m, c(40, median(framdat_m$SYSBP), 0, 0)))
 
-# Define baseline profile
-baseline <- c(
-  AGE      = median(framdat_m$AGE),
-  SYSBP    = median(framdat_m$SYSBP),
-  DIABETES = 0,
-  CURSMOKE = 0
-)
+# Male subgroups
+male_matrix <- matrix(c(40, quantile(framdat_m$SYSBP, .75), 0, 0,
+                        40, quantile(framdat_m$SYSBP, .5), 1, 0,
+                        40, quantile(framdat_m$SYSBP, .5), 0, 1,
+                        40, quantile(framdat_m$SYSBP, .75), 1, 0,
+                        40, quantile(framdat_m$SYSBP, .75), 1, 1,
+                        50, quantile(framdat_m$SYSBP, .75), 0, 0,
+                        50, quantile(framdat_m$SYSBP, .5), 1, 0,
+                        50, quantile(framdat_m$SYSBP, .5), 0, 1,
+                        50, quantile(framdat_m$SYSBP, .75), 1, 0,
+                        50, quantile(framdat_m$SYSBP, .75), 1, 1,
+                        60, quantile(framdat_m$SYSBP, .75), 0, 0,
+                        60, quantile(framdat_m$SYSBP, .5), 1, 0,
+                        60, quantile(framdat_m$SYSBP, .5), 0, 1,
+                        60, quantile(framdat_m$SYSBP, .75), 1, 0,
+                        60, quantile(framdat_m$SYSBP, .75), 1, 1
+                        ), byrow = TRUE, ncol = 4)
 
-# Define risk profiles
-risk_profiles <- expand.grid(
-  AGE      = c(40, 50, 60),
-  SYSBP    = c(median(framdat_m$SYSBP), quantile(framdat_m$SYSBP, 0.75)),
-  DIABETES = c(0, 1),
-  CURSMOKE = c(0, 1)
-)
+female_matrix <- matrix(c(40, quantile(framdat_f$SYSBP, .75), 0, 0,
+                          40, quantile(framdat_f$SYSBP, .5), 1, 0,
+                          40, quantile(framdat_f$SYSBP, .5), 0, 1,
+                          40, quantile(framdat_f$SYSBP, .75), 1, 0,
+                          40, quantile(framdat_f$SYSBP, .75), 1, 1,
+                          50, quantile(framdat_f$SYSBP, .75), 0, 0,
+                          50, quantile(framdat_f$SYSBP, .5), 1, 0,
+                          50, quantile(framdat_f$SYSBP, .5), 0, 1,
+                          50, quantile(framdat_f$SYSBP, .75), 1, 0,
+                          50, quantile(framdat_f$SYSBP, .75), 1, 1,
+                          60, quantile(framdat_f$SYSBP, .75), 0, 0,
+                          60, quantile(framdat_f$SYSBP, .5), 1, 0,
+                          60, quantile(framdat_f$SYSBP, .5), 0, 1,
+                          60, quantile(framdat_f$SYSBP, .75), 1, 0,
+                          60, quantile(framdat_f$SYSBP, .75), 1, 1
+                          
+), byrow = TRUE, ncol = 4)
 
-# Add labels
-risk_profiles <- risk_profiles %>%
-  mutate(
-    SBP_label      = ifelse(SYSBP == median(framdat_m$SYSBP), "Median SBP", "75th Percentile SBP"),
-    DIABETES_label = ifelse(DIABETES == 1, "Diabetes", "No Diabetes"),
-    SMOKE_label    = ifelse(CURSMOKE == 1, "Smoker", "Non-Smoker"),
-    profile_label  = paste(AGE, "yrs |", SBP_label, "|", DIABETES_label, "|", SMOKE_label)
+
+df_cox_cis <- data.frame(`Males Prob. of Stroke @ 10yrs (95% CI)`=character(15), `Females Prob. (95% CI)`=character(15))
+
+for (i in 1:15) {
+  
+  ci <- confint_coxph(L = male_matrix[i,], model = final_model_m, dat = framdat_m)
+  df_cox_cis$`Males Prob. of Stroke @ 10yrs (95% CI)`[i] <- sprintf("%s (%s, %s)", ci[1], ci[2], ci[3])
+  
+  ci <- confint_coxph(L = female_matrix[i,], model = final_model_f_smoking,dat = framdat_f)
+  df_cox_cis$`Females Prob. (95% CI)`[i] <- sprintf("%s (%s, %s)", ci[1], ci[2], ci[3])
+
+}
+df_cox_cis$`Risk Group` <-
+  c("High BP",
+    "Diabetes",
+    "Smoker",
+    "High BP, Diabetes",
+    "High BP, Diabetes, Smoker",
+    "High BP",
+    "Diabetes",
+    "Smoker",
+    "High BP, Diabetes",
+    "High BP, Diabetes, Smoker",
+    "High BP",
+    "Diabetes",
+    "Smoker",
+    "High BP, Diabetes",
+    "High BP, Diabetes, Smoker")
+
+col_order <- c("Risk Group", "Males Prob. of Stroke @ 10yrs (95% CI)", "Females Prob. (95% CI)")
+my_data2 <- df_cox_cis[, col_order]
+my_data2
+
+gt_cox <- gt(my_data2)
+
+gt_cox <-
+  gt_cox |>
+  tab_row_group(
+    label = "Age = 40",
+    rows = 1:5
+  ) |>
+  tab_row_group(
+    label = "Age = 50",
+    rows = 6:10
+  ) |>
+  tab_row_group(
+    label = "Age = 60",
+    rows = 11:15
   )
 
-# Compute CI for each profile relative to baseline
-results <- do.call(rbind, lapply(1:nrow(risk_profiles), function(i) {
-  L <- as.numeric(risk_profiles[i, c("AGE", "SYSBP", "DIABETES", "CURSMOKE")]) - baseline
-  ci <- confint_coxph(final_model_m, L)
-  data.frame(
-    profile = risk_profiles$profile_label[i],
-    est     = ci[1],
-    lower   = ci[2],
-    upper   = ci[3]
-  )
-}))
+gt_cox
 
-print(results)
 
-# Forest plot
-ggplot(results, aes(x = est, y = profile)) +
-  geom_point() +
-  geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2) +
-  geom_vline(xintercept = 1, linetype = "dashed", color = "red") +
-  labs(x = "Hazard Ratio (vs. Median Age & SBP, Non-Smoker, No Diabetes)", 
-       y = NULL, 
-       title = "Risk Profiles - Male Cox Model") +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5))
 
-library(gt)
 
-results_table <- results %>%
-  mutate(
-    `Hazard Ratio` = round(est, 3),
-    `95% CI`       = paste0("(", round(lower, 3), ", ", round(upper, 3), ")")
-  ) %>%
-  select(Profile = profile, `Hazard Ratio`, `95% CI`)
 
-results_table %>%
-  gt() %>%
-  tab_header(
-    title    = "Risk Profiles - Male Cox Model",
-    subtitle = "Hazard Ratios relative to median age & SBP, non-smoker, no diabetes"
-  ) %>%
-  cols_align(align = "left",   columns = Profile) %>%
-  cols_align(align = "center", columns = c(`Hazard Ratio`, `95% CI`)) %>%
-  tab_style(
-    style = cell_text(weight = "bold"),
-    locations = cells_column_labels()
-  ) %>%
-  gtsave("risk_profiles_table.html")
+###################
+#SCHOENFELD PLOTS #
+###################
 
-browseURL("risk_profiles_table.html")
+
+ph_res_m<-cox.zph(final_model_m)
+
+schoen_m <- ggcoxzph(ph_res_m, se=T)
+
+ph_res_f<-cox.zph(final_model_f_smoking)
+
+schoen_f <- ggcoxzph(ph_res_f, se=T)
+

@@ -1,9 +1,8 @@
-framdat <- read.csv("~/Downloads/frmgham2.csv")
+framdat_raw <- read_csv("~/Downloads/frmgham2.csv")
 library(gtsummary)
-library(dplyr)
 
 #Subjects with TIMESTRK 
-framdat <- framdat %>%
+framdat <- framdat_raw %>%
   filter(TIMESTRK != 0 )
 
 framdat <- framdat %>%
@@ -19,6 +18,8 @@ length(unique(framdat$RANDID))
 #censored: stroke == 0 and last observation for subject.
 
 library(naniar)
+gg_miss_fct(x = framdat_raw, fct = PERIOD)
+gg_miss_fct(x = framdat_raw, fct = STROKE)
 
 
 
