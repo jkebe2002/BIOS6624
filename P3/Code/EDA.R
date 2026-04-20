@@ -63,16 +63,18 @@ tbl_merge(
 #, Total cholesterol, BMI.
 #  - baseline values for all.
   
+
+  
+  
   cor_fram_m <- framdat_m %>%
-    select(where(~ sd(., na.rm = TRUE) > 0)) %>%
-    select(AGE, DIABETES, SYSBP, PREVCHD, BPMEDS, CURSMOKE,
-           TOTCHOL, BMI) %>%
-    cor(use = "complete.obs")  
+    select(AGE, DIABETES, SYSBP, PREVCHD, BPMEDS, CURSMOKE, TOTCHOL, BMI) %>%
+    mutate(across(where(is.factor), ~ as.numeric(as.character(.)))) %>%  # <-- convert factors
+    cor(use = "complete.obs")
   
   cor_fram_f <- framdat_f %>%
-    select(where(~ sd(., na.rm = TRUE) > 0)) %>%
     select(AGE, DIABETES, SYSBP, PREVCHD, BPMEDS, CURSMOKE,
            TOTCHOL, BMI) %>%
+    mutate(across(where(is.factor), ~ as.numeric(as.character(.)))) %>%  # <-- convert factors
     cor(use = "complete.obs")  
   
   
@@ -101,7 +103,7 @@ tbl_merge(
       panel.grid = element_blank()
     ) +
     coord_fixed()
-)
+
 
 cor_melted_f <- melt(cor_fram_f, varnames = c("Var1", "Var2"), value.name = "correlation")
 
