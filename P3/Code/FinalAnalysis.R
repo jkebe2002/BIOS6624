@@ -497,7 +497,7 @@ gt_cox <-
   tab_row_group(
     label = "Median Age",
     rows = 16
-  )  |> tab_caption(caption = "Table 2. Probability of risk in a 10 year period for men and women in a sample from the Framingham Heart Study, using median age and systolic blood pressure, no diabetes, and for men, no smoking behavior, as the reference levels.")
+  )  |> tab_caption(caption = "Probability of risk in a 10 year period for men and women in a sample from the Framingham Heart Study, using median age and systolic blood pressure, no diabetes, and for men, no smoking behavior, as the reference levels.")
 
 
 gt_cox
