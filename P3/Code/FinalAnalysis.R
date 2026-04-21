@@ -1,5 +1,10 @@
 library(tidyverse)
 library(gt)
+library(survival)
+library(survminer)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
 
 
 framdat_raw <- read_csv("~/Downloads/frmgham2.csv")
@@ -8,6 +13,7 @@ library(gtsummary)
 
 
 #Subjects with TIMESTRK 
+#no subjects who already had a stroke
 framdat <- framdat_raw %>%
   filter(TIMESTRK != 0 )
 
@@ -17,6 +23,7 @@ framdat <- framdat %>%
 framdat <- framdat %>%
   mutate(time_obs = pmin(TIMESTRK, ceiling(10*365.25))) %>%
   select(-c(TIME,HDLC,LDLC,PERIOD,PREVSTRK)) %>%
+  #censor at 10 years
   mutate(stroke_10yr = if_else(TIMESTRK > ceiling(10*365.25), 0, STROKE )
   )
 
@@ -74,135 +81,10 @@ surv8<-survfit(Surv(time_obs, stroke_10yr)~CURSMOKE, data=framdat_f)
 ggsurvplot(surv8, conf.int=FALSE,legend="none",
            xlim=c(0, max(framdat_m$time_obs)))
 
-library(survival)
-library(ggplot2)
-library(dplyr)
-library(patchwork)
-
-# ── 1. Quantile groupings ─────────────────────────────────────────────────────
-
-framdat_m <- framdat_m %>%
-  mutate(
-    AGE_q = cut(AGE,
-                breaks = quantile(AGE, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE),
-                labels = c("Q1 (Youngest)", "Q2", "Q3", "Q4 (Oldest)"),
-                include.lowest = TRUE),
-    SYSBP_q = cut(SYSBP,
-                  breaks = quantile(SYSBP, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE),
-                  labels = c("Q1 (Lowest)", "Q2", "Q3", "Q4 (Highest)"),
-                  include.lowest = TRUE)
-  )
-
-framdat_f <- framdat_f %>%
-  mutate(
-    AGE_q = cut(AGE,
-                breaks = quantile(AGE, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE),
-                labels = c("Q1 (Youngest)", "Q2", "Q3", "Q4 (Oldest)"),
-                include.lowest = TRUE),
-    SYSBP_q = cut(SYSBP,
-                  breaks = quantile(SYSBP, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE),
-                  labels = c("Q1 (Lowest)", "Q2", "Q3", "Q4 (Highest)"),
-                  include.lowest = TRUE)
-  )
-
-
-# ── 2. Helper: survfit → tidy data frame ──────────────────────────────────────
-
-tidy_survfit <- function(fit) {
-  s <- summary(fit)
-  data.frame(
-    time   = s$time,
-    surv   = s$surv,
-    strata = sub(".*=", "", as.character(s$strata))  # strip "VAR=" prefix
-  )
-}
-
-
-# ── 3. Helper: pure ggplot2 KM plot ──────────────────────────────────────────
-
-pub_theme <- theme_classic(base_size = 11) +
-  theme(
-    plot.title      = element_text(face = "bold", size = 11, hjust = 0.5,
-                                   margin = margin(b = 4)),
-    axis.title      = element_text(size = 10),
-    axis.text       = element_text(size = 9),
-    legend.position = "right",
-    legend.title    = element_text(size = 9, face = "bold"),
-    legend.text     = element_text(size = 8),
-    legend.key.size = unit(0.45, "cm"),
-    plot.margin     = margin(4, 6, 4, 4)
-  )
-
-pal4 <- c("#0072B2", "#56B4E9", "#E69F00", "#D55E00")
-pal2 <- c("#0072B2", "#D55E00")
-
-make_km_plot <- function(fit, title, legend_title, palette, xlim_max) {
-  
-  df <- tidy_survfit(fit)
-  
-  # Prepend time=0, surv=1 for each stratum so curves start at 1
-  starts <- df %>%
-    group_by(strata) %>%
-    slice(1) %>%
-    mutate(time = 0, surv = 1)
-  
-  df <- bind_rows(starts, df) %>% arrange(strata, time)
-  
-  ggplot(df, aes(x = time, y = surv, colour = strata)) +
-    geom_step(linewidth = 0.7) +
-    scale_colour_manual(values = palette, name = legend_title) +
-    scale_x_continuous(limits = c(0, xlim_max), expand = c(0.01, 0)) +
-    scale_y_continuous(limits = c(0, 1),        expand = c(0.01, 0)) +
-    labs(title = title, x = "Time (days)", y = "Survival probability") +
-    pub_theme
-}
-
-
-# ── 4. Fit models ─────────────────────────────────────────────────────────────
-
-xlim_max <- max(framdat_m$time_obs)
-
-surv1 <- survfit(Surv(time_obs, stroke_10yr) ~ AGE_q,    data = framdat_m)
-surv2 <- survfit(Surv(time_obs, stroke_10yr) ~ SYSBP_q,  data = framdat_m)
-surv3 <- survfit(Surv(time_obs, stroke_10yr) ~ DIABETES, data = framdat_m)
-surv4 <- survfit(Surv(time_obs, stroke_10yr) ~ CURSMOKE, data = framdat_m)
-
-surv5 <- survfit(Surv(time_obs, stroke_10yr) ~ AGE_q,    data = framdat_f)
-surv6 <- survfit(Surv(time_obs, stroke_10yr) ~ SYSBP_q,  data = framdat_f)
-surv7 <- survfit(Surv(time_obs, stroke_10yr) ~ DIABETES, data = framdat_f)
-surv8 <- survfit(Surv(time_obs, stroke_10yr) ~ CURSMOKE, data = framdat_f)
-
-
-# ── 5. Build plots ────────────────────────────────────────────────────────────
-
-p1 <- make_km_plot(surv1, "Age Quartile",         "Age quartile", pal4, xlim_max)
-p2 <- make_km_plot(surv2, "Systolic BP Quartile", "SBP quartile", pal4, xlim_max)
-p3 <- make_km_plot(surv3, "Diabetes",             "Diabetes",     pal2, xlim_max)
-p4 <- make_km_plot(surv4, "Current Smoking",      "Smoking",      pal2, xlim_max)
-
-p5 <- make_km_plot(surv5, "Age Quartile",         "Age quartile", pal4, xlim_max)
-p6 <- make_km_plot(surv6, "Systolic BP Quartile", "SBP quartile", pal4, xlim_max)
-p7 <- make_km_plot(surv7, "Diabetes",             "Diabetes",     pal2, xlim_max)
-p8 <- make_km_plot(surv8, "Current Smoking",      "Smoking",      pal2, xlim_max)
-
-# ── 6. Assemble panel ─────────────────────────────────────────────────────────
-
-final_figure <- (p1 | p2 | p3 | p4) / (p5 | p6 | p7 | p8) +
-  plot_annotation(
-    title    = "Kaplan–Meier Curves for 10-Year Stroke-Free Survival",
-    subtitle = "Framingham Heart Study  |  AGE and SYSBP stratified by quartile\nTop row: Males    Bottom row: Females",
-    caption  = "Curves estimated using Kaplan–Meier method; no confidence intervals shown.",
-    theme    = theme(
-      plot.title    = element_text(face = "bold", size = 15, hjust = 0.5),
-      plot.subtitle = element_text(size = 11, hjust = 0.5, colour = "grey40"),
-      plot.caption  = element_text(size = 9,  hjust = 1,   colour = "grey50")
-    )
-  )
 
 
 
-
-# Example using the 'lung' dataset
+#model selection
 full_model_m <- coxph(Surv(time_obs,stroke_10yr) ~ AGE+SYSBP+DIABETES+BPMEDS+PREVCHD+CURSMOKE+TOTCHOL+BMI, 
                       data = framdat_m)
 null_model_m <- coxph(Surv(time_obs,stroke_10yr) ~ AGE+SYSBP+DIABETES, data = framdat_m)
@@ -232,8 +114,8 @@ final_model_f <- step(
 )
 
 
-final_model_f_smoking <- coxph(Surv(time_obs,stroke_10yr ) ~ AGE+SYSBP+DIABETES+CURSMOKE, 
-                      data = framdat_f)
+#final_model_f_smoking <- coxph(Surv(time_obs,stroke_10yr ) ~ AGE+SYSBP+DIABETES+CURSMOKE, 
+#                      data = framdat_f)
 
 
 
@@ -246,17 +128,13 @@ final_model_f_smoking <- coxph(Surv(time_obs,stroke_10yr ) ~ AGE+SYSBP+DIABETES+
 
 
 
-# res.cox2<-coxph(Surv(DWHFDAYS,DWHF)~TRTMT+
-#                   FUNCTCLS+ DIGUSE+DIURET+CHESTX_greater_55+
-#                   EJF_PER_above_25,
-#                 data=dig_data)
+
 newdata2<-data.frame(TRTMT=c(0,1), FUNCTCLS=0, DIGUSE=0, DIURET=0,
                      CHESTX_greater_55=0, EJF_PER_above_25=0)
 
 
 #Males, SBP at median and 3rd quartile, diabetes
 male_risk_profiles_SBP_diab_40 <- data.frame(AGE = 40, SYSBP = c(128.5,128.5, 160, 160), DIABETES = c(0,1,0,1), CURSMOKE = 0)
-
 
 male_risk_profiles_SBP_diab_50 <- data.frame(AGE = 50, SYSBP = c(128.5,128.5, 160, 160), DIABETES = c(0,1,0,1), CURSMOKE = 0)
 
@@ -353,23 +231,7 @@ plots_f <- list(
              ggtheme = theme(plot.title = element_text(hjust = 0.5)))
 )
 
-plots_f_sm <- list(
-  ggsurvplot(survfit(final_model_f, newdata = female_risk_profiles_SBP_diab_40_sm), 
-             data = framdat_f, censor = F, conf.int = F, legend = "right",
-             xlim = c(0, xlim_max), legend.labs = legend_labs,
-             title = "Age 40",
-             ggtheme = theme(plot.title = element_text(hjust = 0.5))),
-  ggsurvplot(survfit(final_model_f, newdata = female_risk_profiles_SBP_diab_50_sm), 
-             data = framdat_f, censor = F, conf.int = F, legend = "right",
-             xlim = c(0, xlim_max), legend.labs = legend_labs,
-             title = "Age 50",
-             ggtheme = theme(plot.title = element_text(hjust = 0.5))),
-  ggsurvplot(survfit(final_model_f, newdata = female_risk_profiles_SBP_diab_60_sm), 
-             data = framdat_f, censor = F, conf.int = F, legend = "right",
-             xlim = c(0, xlim_max), legend.labs = legend_labs,
-             title = "Age 60",
-             ggtheme = theme(plot.title = element_text(hjust = 0.5)))
-)
+
 
 # ── Extract plots and legend ───────────────────────────────────────────────────
 p1 <- plots[[1]]$plot + theme(legend.position = "none")
@@ -384,9 +246,36 @@ p1_f <- plots_f[[1]]$plot + theme(legend.position = "none")
 p2_f <- plots_f[[2]]$plot + theme(legend.position = "none")
 p3_f <- plots_f[[3]]$plot + theme(legend.position = "right")
 
-p1_f_sm <- plots_f_sm[[1]]$plot + theme(legend.position = "none")
-p2_f_sm <- plots_f_sm[[2]]$plot + theme(legend.position = "none")
-p3_f_sm <- plots_f_sm[[3]]$plot + theme(legend.position = "right")
+clean <- function(p, legend = "none") {
+  p + 
+    theme_classic() +
+    theme(
+      legend.position  = legend,
+      plot.background  = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA)
+    )
+}
+
+p1    <- clean(plots[[1]]$plot)
+p2    <- clean(plots[[2]]$plot)
+p3    <- clean(plots[[3]]$plot, legend = "right")
+
+p1_sm <- clean(plots_sm[[1]]$plot)
+p2_sm <- clean(plots_sm[[2]]$plot)
+p3_sm <- clean(plots_sm[[3]]$plot, legend = "right")
+
+p1_f  <- clean(plots_f[[1]]$plot)
+p2_f  <- clean(plots_f[[2]]$plot)
+p3_f  <- clean(plots_f[[3]]$plot, legend = "right")
+
+# extract legend from cleaned p3
+shared_legend <- cowplot::get_plot_component(p3, "guide-box", return_all = TRUE)[[1]]
+
+p3_no_legend    <- clean(plots[[3]]$plot)
+p3_no_legend_sm <- clean(plots_sm[[3]]$plot)
+p3_no_legend_f  <- clean(plots_f[[3]]$plot)
+
+
 
 # Use get_plot_component() instead of get_legend() for newer cowplot
 shared_legend <- cowplot::get_plot_component(p3, "guide-box", return_all = TRUE)[[1]]
@@ -394,7 +283,6 @@ shared_legend <- cowplot::get_plot_component(p3, "guide-box", return_all = TRUE)
 p3_no_legend    <- p3    + theme(legend.position = "none")
 p3_no_legend_sm <- p3_sm + theme(legend.position = "none")
 p3_no_legend_f  <- p3_f  + theme(legend.position = "none")
-p3_no_legend_f_sm  <- p3_f_sm  + theme(legend.position = "none")
 
 
 # ── Row labels ─────────────────────────────────────────────────────────────────
@@ -402,26 +290,24 @@ label_m_ns <- ggdraw() + draw_label("Male\nNon-Sm", fontface = "bold",
                                     hjust = 0.5, vjust = 0.5, size = 9)
 label_m_sm <- ggdraw() + draw_label("Male\nSm",     fontface = "bold", 
                                     hjust = 0.5, vjust = 0.5, size = 9)
-label_f    <- ggdraw() + draw_label("Female\nNon-Sm",            fontface = "bold", 
+label_f    <- ggdraw() + draw_label("Female",            fontface = "bold", 
                                     hjust = 0.5, vjust = 0.5, size = 9)
 
-label_f_sm    <- ggdraw() + draw_label("Female\nSm",            fontface = "bold", 
-                                    hjust = 0.5, vjust = 0.5, size = 9)
+
 
 # ── 3x3 grid: label | p1 | p2 | p3 | legend ───────────────────────────────────
 row_m_ns <- plot_grid(label_m_ns, p1,    p2,    p3_no_legend,    nrow = 1, rel_widths = c(0.18, 1, 1, 1))
 row_m_sm <- plot_grid(label_m_sm, p1_sm, p2_sm, p3_no_legend_sm, nrow = 1, rel_widths = c(0.18, 1, 1, 1))
 row_f    <- plot_grid(label_f,    p1_f,  p2_f,  p3_no_legend_f,  nrow = 1, rel_widths = c(0.18, 1, 1, 1))
-row_f_sm    <- plot_grid(label_f_sm,    p1_f_sm,  p2_f_sm,  p3_no_legend_f_sm,  nrow = 1, rel_widths = c(0.18, 1, 1, 1))
 
 # Stack rows, add shared legend to the right
-grid_4x3 <- plot_grid(row_m_ns, row_m_sm, row_f, row_f_sm,nrow = 4)
+grid_4x3 <- plot_grid(row_m_ns, row_m_sm, row_f,nrow = 3)
 
 plot_final_4x3 <- plot_grid(
   grid_4x3, shared_legend,
   nrow = 1,
   rel_widths = c(1, 0.18)
-)
+) + theme(plot.background = element_rect(fill = "white", color = NA))
 
 #plot_final_4x3
 
@@ -449,7 +335,13 @@ confint_coxph <- function(model, L, dat) {
   # lower <- est - 1.96*sqrt(L_diff %*% model$var %*% t(L_diff))
   # upper <- est + 1.96*sqrt(L_diff %*% model$var %*% t(L_diff) )
   # return(exp(c(est, lower, upper)))
-  l_df <- data.frame(AGE = L[1], SYSBP = L[2], DIABETES = L[3], CURSMOKE = L[4])
+  
+  if (length(L) == 4) {
+    l_df <- data.frame(AGE = L[1], SYSBP = L[2], DIABETES = L[3], CURSMOKE = L[4])
+  } else {
+    l_df <- data.frame(AGE = L[1], SYSBP = L[2], DIABETES = L[3])
+  }
+  #l_df <- data.frame(AGE = L[1], SYSBP = L[2], DIABETES = L[3], CURSMOKE = L[4])
   survprobs <- survfit(model, newdata = l_df, data = dat)
 
   s <- summary(survprobs, times = 3652)
@@ -462,6 +354,30 @@ confint_coxph <- function(model, L, dat) {
   # [1] "0.423" "0.281" "0.637"
   
 }
+
+
+confint_coxph_hazards <- function(model, L, dat) {
+  #returns exponentiated Wald CI's for estimate for different risk profiles
+  # provides risk profile relative to nonsmoker, no diabetes, median blood pressure
+  if (length(L) == 4) {
+    L_diff <- L - t(c(median(dat$AGE), median(dat$SYSBP), 0, 0))
+    
+  }
+  if (length(L) == 3) {
+    L_diff <- L - t(c(median(dat$AGE), median(dat$SYSBP), 0))
+    
+  }
+  est  <- L_diff %*% model$coefficients
+  lower <- est - 1.96*sqrt(L_diff %*% model$var %*% t(L_diff))
+  upper <- est + 1.96*sqrt(L_diff %*% model$var %*% t(L_diff) )
+  print(exp(c(est, lower, upper)))
+  return(exp(c(est, lower, upper)))
+  
+  
+}
+
+
+
 
 
 # Male subgroups
@@ -479,7 +395,9 @@ male_matrix <- matrix(c(40,160, 0, 0,
                         60, 160, 1, 0,
                         60, quantile(framdat_m$SYSBP, .5), 0, 1,
                         60, 160, 1, 0,
-                        60, 160, 1, 1
+                        60, 160, 1, 1,
+                        median(framdat_m$AGE),quantile(framdat_m$SYSBP, .5),0 ,0
+                        
                         ), byrow = TRUE, ncol = 4)
 
 female_matrix <- matrix(c(40, 160, 0, 0,
@@ -496,21 +414,46 @@ female_matrix <- matrix(c(40, 160, 0, 0,
                           60, quantile(framdat_f$SYSBP, .5), 1, 0,
                           60, quantile(framdat_f$SYSBP, .5), 0, 1,
                           60, 160, 1, 0,
-                          60, 160, 1, 1
+                          60, 160, 1, 1,
+                          median(framdat_f$AGE),quantile(framdat_f$SYSBP, .5),0 ,0
                           
 ), byrow = TRUE, ncol = 4)
 
 
-df_cox_cis <- data.frame(`Males Prob. of Stroke @ 10yrs (95% CI)`=character(15), `Females Prob. (95% CI)`=character(15))
+female_matrix_no_sm <- matrix(c(40, 160, 0, 
+                          40, quantile(framdat_f$SYSBP, .5), 1, 
+                          40, quantile(framdat_f$SYSBP, .5), 0, 
+                          40, 160, 1, 
+                          40, 160, 1, 
+                          50, 160, 0, 
+                          50, quantile(framdat_f$SYSBP, .5), 1, 
+                          50, quantile(framdat_f$SYSBP, .5), 0, 
+                          50, 160, 1, 
+                          50, 160, 1, 
+                          60, 160, 0, 
+                          60, quantile(framdat_f$SYSBP, .5), 1, 
+                          60, quantile(framdat_f$SYSBP, .5), 0, 
+                          60, 160, 1, 
+                          60, 160, 1,
+                          median(framdat_f$AGE),quantile(framdat_f$SYSBP, .5),0 
+                          
+), byrow = TRUE, ncol = 3)
 
-for (i in 1:15) {
+df_cox_cis <- data.frame(`Males Prob. of Stroke @ 10yrs (95% CI)`=character(16), `Females Prob. (95% CI)`=character(16))
+
+for (i in 1:16) {
   
   ci <- confint_coxph(L = male_matrix[i,], model = final_model_m, dat = framdat_m)
   df_cox_cis$`Males Prob. of Stroke @ 10yrs (95% CI)`[i] <- sprintf("%s (%s, %s)", ci[1], ci[2], ci[3])
   
-  ci <- confint_coxph(L = female_matrix[i,], model = final_model_f_smoking,dat = framdat_f)
+  ci <- confint_coxph(L = female_matrix_no_sm[i,], model = final_model_f,dat = framdat_f)
   df_cox_cis$`Females Prob. (95% CI)`[i] <- sprintf("%s (%s, %s)", ci[1], ci[2], ci[3])
-
+  if (i %in% c(3,5,8,10,13,15))
+  {
+    df_cox_cis$`Females Prob. (95% CI)`[i] <- "--"
+    
+  }
+  
 }
 df_cox_cis$`Risk Group` <-
   c("High BP",
@@ -527,7 +470,8 @@ df_cox_cis$`Risk Group` <-
     "Diabetes",
     "Smoker",
     "High BP, Diabetes",
-    "High BP, Diabetes, Smoker")
+    "High BP, Diabetes, Smoker",
+    "No Risk Factors")
 
 col_order <- c("Risk Group", "Males Prob. of Stroke @ 10yrs (95% CI)", "Females Prob. (95% CI)")
 my_data2 <- df_cox_cis[, col_order]
@@ -548,7 +492,13 @@ gt_cox <-
   tab_row_group(
     label = "Age = 60",
     rows = 11:15
-  )
+    
+  ) |>
+  tab_row_group(
+    label = "Median Age",
+    rows = 16
+  )  |> tab_caption(caption = "Table 2. Probability of risk in a 10 year period for men and women in a sample from the Framingham Heart Study, using median age and systolic blood pressure, no diabetes, and for men, no smoking behavior, as the reference levels.")
+
 
 gt_cox
 
@@ -636,7 +586,7 @@ ph_res_m<-cox.zph(final_model_m)
 
 schoen_m <- ggcoxzph(ph_res_m, se=T)
 
-ph_res_f<-cox.zph(final_model_f_smoking)
+ph_res_f<-cox.zph(final_model_f)
 
 schoen_f <- ggcoxzph(ph_res_f, se=T)
 

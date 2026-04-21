@@ -23,7 +23,7 @@ source("~/Documents/GitHub/BIOS6624/P3/Code/FinalAnalysis.R")
 The Framingham Heart Study is a prospective long term cohort study investigating cardiovascular disease risk which began in 1948. We investigate profiles associated with increased probability of risk of stroke in a subset of this study's population recorded from 1956 to approximately 1968. Probability of stroke in a 10 year period is computed for different age groups, accounting for diabetes, high blood pressure, and their combination. Other potential risk factors for stroke are assessed through selecting parsimonious Cox Proportional Hazard models, and probabilities for additional risk profiles are computed. Change in risk factors over the study duration is explored. 
 
 Data comes from a subset of the Framingham Heart Study, with 4,434 individuals followed for 3 time periods, approximately 6 years apart, ranging from 1956 to 1968. Variables of interest inluded in the data are time until stroke or censorship, the stroke event, sex, age, diabetes (Y/N), systolic blood pressure, BMI, blood pressure medication use (Y/N), total cholesterol level, current smoking status (Y/N), and coronary heart disease (Y/N). For the risk factor analysis, we excluded individuals who had already had a stroke before the beginning of the study (TIMESTRK=0), only considered period 1, in order to capture baseline characteristics, and censored all individuals at 10 years (3652 days), resulting in 4,402 remaining individuals. We disregarded other events measured in the data. We also considered complete case analysis, removing individuals with missing information on the covariates we are interested in, and stratified the data into a male group and female group, with final sample sizes of 1,897 and 2,378 respectively. Missingness was assessed for meaningful patterns. None were found so data was assumed to be missing completely at random. To analyze change in risk factors, we used data on the same individuals for periods 1 and 3 for consistent interpretation. 
-```{r table1, warning=FALSE, echo=FALSE, message=FALSE, eval=FALSE}
+```{r table1, warning=FALSE, echo=FALSE, message=FALSE}
 table1_m <- framdat_m |>
   tbl_summary(
     include = c(AGE, SYSBP,DIABETES, CURSMOKE, BMI,  BPMEDS, 
@@ -72,13 +72,7 @@ For both sex groups, and for ages 40, 50, and 60, we were primarily interested i
 Probabilities for these risk profiles were computed using the final Cox PH models for each age group.
 
 We also measured the change in each of the 8 risk factors listed above in the subset of our final study population that had data measured at both period 1 and period 3 (1,102 males and 1,438 females.) This subset was used to maintain consistency of the population we are drawing inference on throughout the analysis.
-```{r kapmeier, warning=FALSE, echo=FALSE, message=FALSE,eval=FALSE}
-
-library(survival)
-library(survminer)
-library(dplyr)
-library(ggplot2)
-library(gridExtra)
+```{r kapmeierm, fig.width=10, fig.height=8, fig.cap="Kaplan Meier Curves for Potential Risk Factors", out.width="\\textwidth", fig.pos="h", echo=FALSE}
 
 # --- Helper: create quantile groups for continuous variables ---
 quartile_group <- function(x) {
@@ -99,19 +93,30 @@ framdat2 <- framdat %>%
     BPMEDS     = factor(BPMEDS,     labels = c("No","Yes")),
     CURSMOKE   = factor(CURSMOKE,   labels = c("No","Yes")),
     PREVCHD    = factor(PREVCHD,    labels = c("No","Yes"))
-  )
+  ) 
+framdat2_m <- framdat2 %>% filter(SEX == 1)
+framdat2_f <- framdat2 %>% filter(SEX == 2)
+
 
 # --- Fit KM models ---
 # Adjust 'TIME' and 'EVENT' to your actual survival time and status columns
 fits <- list(
-  AGE     = survfit(Surv(time_obs, stroke_10yr) ~ AGE_Q,     data = framdat2),
-  SYSBP   = survfit(Surv(time_obs, stroke_10yr) ~ SYSBP_Q,   data = framdat2),
-  BMI     = survfit(Surv(time_obs, stroke_10yr) ~ BMI_Q,     data = framdat2),
-  TOTCHOL = survfit(Surv(time_obs, stroke_10yr) ~ TOTCHOL_Q, data = framdat2),
-  DIABETES = survfit(Surv(time_obs,stroke_10yr) ~ DIABETES,  data = framdat2),
-  BPMEDS  = survfit(Surv(time_obs, stroke_10yr) ~ BPMEDS,    data = framdat2),
-  CURSMOKE = survfit(Surv(time_obs, stroke_10yr) ~ CURSMOKE,  data = framdat2),
-  PREVCHD = survfit(Surv(time_obs, stroke_10yr) ~ PREVCHD,   data = framdat2)
+  AGEm     = survfit(Surv(time_obs, stroke_10yr) ~ AGE_Q,     data = framdat2),
+  SYSBPm   = survfit(Surv(time_obs, stroke_10yr) ~ SYSBP_Q,   data = framdat2),
+  BMIm     = survfit(Surv(time_obs, stroke_10yr) ~ BMI_Q,     data = framdat2),
+  TOTCHOLm = survfit(Surv(time_obs, stroke_10yr) ~ TOTCHOL_Q, data = framdat2),
+  DIABETESm = survfit(Surv(time_obs,stroke_10yr) ~ DIABETES,  data = framdat2),
+  BPMEDSm  = survfit(Surv(time_obs, stroke_10yr) ~ BPMEDS,    data = framdat2),
+  CURSMOKEm = survfit(Surv(time_obs, stroke_10yr) ~ CURSMOKE,  data = framdat2),
+  PREVCHDm = survfit(Surv(time_obs, stroke_10yr) ~ PREVCHD,   data = framdat2),
+    AGEf     = survfit(Surv(time_obs, stroke_10yr) ~ AGE_Q,     data = framdat2),
+  SYSBPf   = survfit(Surv(time_obs, stroke_10yr) ~ SYSBP_Q,   data = framdat2),
+  BMIf     = survfit(Surv(time_obs, stroke_10yr) ~ BMI_Q,     data = framdat2),
+  TOTCHOLf = survfit(Surv(time_obs, stroke_10yr) ~ TOTCHOL_Q, data = framdat2),
+  DIABETESf = survfit(Surv(time_obs,stroke_10yr) ~ DIABETES,  data = framdat2),
+  BPMEDSf  = survfit(Surv(time_obs, stroke_10yr) ~ BPMEDS,    data = framdat2),
+  CURSMOKEf = survfit(Surv(time_obs, stroke_10yr) ~ CURSMOKE,  data = framdat2),
+  PREVCHDf = survfit(Surv(time_obs, stroke_10yr) ~ PREVCHD,   data = framdat2)
 )
 
 # --- Plot settings ---
@@ -157,80 +162,65 @@ make_plot <- function(fit, title, labs, pal) {
 }
 
 plots <- list(
-  make_plot(fits$AGE,      "Age",                   c("Q1","Q2","Q3","Q4"), palette_q4),
-  make_plot(fits$SYSBP,    "Systolic BP",           c("Q1","Q2","Q3","Q4"), palette_q4),
-  make_plot(fits$BMI,      "BMI",                   c("Q1","Q2","Q3","Q4"), palette_q4),
-  make_plot(fits$TOTCHOL,  "Total Cholesterol",     c("Q1","Q2","Q3","Q4"), palette_q4),
-  make_plot(fits$DIABETES, "Diabetes",              c("No","Yes"),          palette_bin),
-  make_plot(fits$BPMEDS,   "BP Medications",        c("No","Yes"),          palette_bin),
-  make_plot(fits$CURSMOKE, "Current Smoker",        c("No","Yes"),          palette_bin),
-  make_plot(fits$PREVCHD,  "Prev. CHD",             c("No","Yes"),          palette_bin)
+  make_plot(fits$AGEm,      "Age (M)",                   c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$SYSBPm,    "Systolic BP (M)",           c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$BMIm,      "BMI (M)",                   c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$TOTCHOLm,  "Total Cholesterol (M)",     c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$DIABETESm, "Diabetes (M)",              c("No","Yes"),          palette_bin),
+  make_plot(fits$BPMEDSm,   "BP Medications (M)",        c("No","Yes"),          palette_bin),
+  make_plot(fits$CURSMOKEm, "Current Smoker (M)",        c("No","Yes"),          palette_bin),
+  make_plot(fits$PREVCHDm,  "Prev. CHD (M)",             c("No","Yes"),          palette_bin),
+    make_plot(fits$AGEf,      "Age (F)",                   c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$SYSBPf,    "Systolic BP (F)",           c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$BMIf,      "BMI (F)",                   c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$TOTCHOLf,  "Total Cholesterol (F)",     c("Q1","Q2","Q3","Q4"), palette_q4),
+  make_plot(fits$DIABETESf, "Diabetes (F)",              c("No","Yes"),          palette_bin),
+  make_plot(fits$BPMEDSf,   "BP Medications (F)",        c("No","Yes"),          palette_bin),
+  make_plot(fits$CURSMOKEf, "Current Smoker (F)",        c("No","Yes"),          palette_bin),
+  make_plot(fits$PREVCHDf,  "Prev. CHD (F)",             c("No","Yes"),          palette_bin)
 )
 
 # --- Combine into 2x4 grid ---
-km_grid <- gridExtra::grid.arrange(
+km_grid1 <- gridExtra::grid.arrange(
   grobs  = plots,
   ncol   = 4,
-  nrow   = 2
+  nrow   = 4
 )
 ```
 
-
-
-
-
-computed hazard ratios, probabilities
-
-
-
-
-descriptive analysis of change in variables over time
-
 # Results
 
-For males, the model with the lowest AIC included age, systolic blood pressure, diabetes, and smoking status, meaning that this model fits the data better and includes more predictive variables than other models that included age, systolic blood pressure, and diabetes as the null model. For females, the model with the lowest AIC was the null model.
-Among the VIFs for these two models, there was never one larger than 1.25, so multicollinearity was dismissed as an issue that could skew estimates and significance.
+For males, the model with the lowest AIC included age, systolic blood pressure, diabetes, and smoking status, suggesting that this model fits the data better and includes more predictive variables than other models that included age, systolic blood pressure, and diabetes as the null model (Portet, 2020). For females, the model with the lowest AIC was the null model.
+Among the VIFs for these two models, there was never one larger than 1.25, so multicollinearity was dismissed as an issue that could skew estimates and significance. Schoenfeld plots and tests showed no significant pattern signifying Cox PH model assumption violations.
 
 For males, every ten year increase in age is associated with 90.0% (83.1%, 97.3%) increased stroke risk when adjusting for systolic blood pressure, diabetes, and smoking status (p < .0001).
-
 Every ten unit increase in systolic blood pressure in males contributes to a 39.7% (95% CI: [38.2%,41.3%]) increased stroke risk, adjusting for age, diabetes, and smoking status (p < .0001).
-
 Males with diabetes have a risk of stroke in 10 years that is 380.7% (95% CI: [109.9%, 1000.5%]) higher than those without diabetes (p = .0002) when adjusting for age, systolic blood pressure, and smoking status.
-
 Males who smoke have a risk of stroke in 10 years that is 92.4% (95% CI: [3.6%, 257.3%]) higher than those who do not smoke (p = .038) when adjuysting for age, systolic blood pressure, and diabetes.
-
 At $\alpha=.05$ These four variables were all found to be significant risk factors contributing to risk of stroke.
 
 For females, every ten year increase in age is associated with a stroke risk increase of 103.2% (95% CI: [38.38%,198.5%]) when adjusting for systolic blood pressure and diabetes (p<.0001).
-
 For females, every 10 mmHg increase in systolic blood pressure contributes to a 29.3% increase (95% CI: [19.3%, 40.2%]) in risk of stroke when adjusting for age and diabetes (p< .0001).
-
 At $\alpha = .05$, Both age and systolic blood pressure were found to be factors significantly associated with risk of stroke in 10 years for the female group.
-
 Diabetes, although included in thte null model for the female group, was not found to significantly alter stroke risk: Those with diabetes had a risk of stroke that was 176.7% (95% CI: [63.6%, 490.4%]) the risk of stroke in those without diabetes when adjusting for age and systolic blood pressure, providing no evidence of increased or decreased risk (p=.275).
 
 Table X shows the probabilities of stroke in a ten year period for different risk profiles described in the methods, along with probabilities for individuals with median age and systolic blood pressure with no diabetes (and for men, nonsmokers).
 
-```{r fig-3x3, fig.width=10, fig.height=8, fig.cap="Survival curves by age, sex, and smoking status", out.width="\\textwidth", fig.pos="h", eval=FALSE}
+```{r fig-3x3, fig.width=10, fig.height=8, fig.cap="Survival curves by age, sex, and smoking status", out.width="\\textwidth", fig.pos="h", echo=FALSE}
 plot_final_4x3
 ```
 
 In the subset of this population with data for periods 1 and 3, systolic blood pressure and BMI did not have significant trends of increase or decrease over the 3 study periods (due to high variation), but many people changed smoking status (22% of men and 11% of women stopped smoking, while 2.5% of men and 1.4% of women reported new smoking behavior). Also, 10% of men and 16% of women started taking blood pressure medication and .3% and .5% stopped, respectively. 12% of men and 6.3% of women were diagnosed with CHD after baseline, and 6.9% and 5.6% were diagnosed with diabetes. Note that this is a biased sample as it exludes those without measurements for period 3. Individuals excluded may have dropped out for health-related reasons or may have died, so the subset may be healthier than the actual population.
 
-```{r probtable, fig.cap="Probability of risk in a 10 year period for men and women in a sample from the Framingham Heart Study, using median age and systolic blood pressure, no diabetes, and for men, no smoking behavior, as the reference levels.",warning=FALSE,echo=FALSE,eval=FALSE}
+```{r probtable, fig.width=10, out.width="\\textwidth", fig.pos="h", fig.cap="Probability of risk in a 10 year period for men and women in a sample from the Framingham Heart Study, using median age and systolic blood pressure, no diabetes, and for men, no smoking behavior, as the reference levels.",warning=FALSE,echo=FALSE}
 gt_cox
 ```
-interpret / report hazard rations and probabilities 
-
-coxph curves
 
 
-*Discusiion*
 
-overview of result findings
+# Discussion
 
-clinical significance 
-how would change in variables over time effect analysis
+Over a ten year period, increases in age and systolic blood pressure, as well as presence of diabetes and smoking behavior, significantly increase the risk of stroke in men. In women, increases in age and systolic blood pressure are significantly associated with stroke risk. We see that the probabilities of stroke in 10 years with these risk factors are higher than the risks for those without. Many of these variables change over time. In order to adjust for time-varying behavior of the covariates, we could no longer assume a constant hazard rate, used in Cox PH models. Options include implementing a time-dependent Cox model, or jointly modeling survival data and longitudinal data, capturing the variation in a given subject's measurements over time (Zhang 2018). This study is limited by the assumption that data is missing completely at random, the use of backward selection as a variable selection procedure (not guaranteed to find the best model), and data availability for period 3.
 
 
 
@@ -238,13 +228,6 @@ how would change in variables over time effect analysis
 
 
 
-
-table 1
-kaplan meier
-cox men
-cox women
-probabilities table 
-change table
 
 
 
@@ -253,11 +236,18 @@ change table
 
 \newpage
 
+# Sources
+
+Portet S. A primer on model selection using the Akaike Information Criterion. Infect Dis Model. 2020 Jan 7;5:111-128. doi: 10.1016/j.idm.2019.12.010. PMID: 31956740; PMCID: PMC6962709.
+
+Zhang Z, Reinikainen J, Adeleke KA, Pieterse ME, Groothuis-Oudshoorn CGM. Time-varying covariates and coefficients in Cox regression models. Ann Transl Med. 2018 Apr;6(7):121. doi: 10.21037/atm.2018.02.12. PMID: 29955581; PMCID: PMC6015946.
+\newpage
+
 # Appendix
 
 # Schoenfeld Residual Plots
 
-```{r c5}
+```{r c5, fig.width=10, fig.height=8, fig.cap="Schoenfeld Plots", out.width="\\textwidth", fig.pos="h",echo=FALSE}
 schoen_m
 schoen_f
 ```
