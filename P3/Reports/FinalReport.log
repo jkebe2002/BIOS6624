@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.1.17)  21 APR 2026 13:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.1.17)  22 APR 2026 12:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -648,27 +648,27 @@ t>
 File: FinalReport_files/figure-latex/kapmeierm-1.pdf Graphic file (type pdf)
 <use FinalReport_files/figure-latex/kapmeierm-1.pdf>
 Package pdftex.def Info: FinalReport_files/figure-latex/kapmeierm-1.pdf  used o
-n input line 206.
+n input line 208.
 (pdftex.def)             Requested size: 469.76074pt x 370.41357pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 [4] [5 <./FinalReport_files/figure-latex/kapmeierm-1.pdf>]
-Overfull \hbox (34.72041pt too wide) in alignment at lines 255--287
+Overfull \hbox (34.72041pt too wide) in alignment at lines 257--289
 [] [] [] 
  []
 
-<FinalReport_files/figure-latex/fig-3x3-1.pdf, id=46, 722.7pt x 566.115pt>
+<FinalReport_files/figure-latex/fig-3x3-1.pdf, id=47, 722.7pt x 566.115pt>
 File: FinalReport_files/figure-latex/fig-3x3-1.pdf Graphic file (type pdf)
 <use FinalReport_files/figure-latex/fig-3x3-1.pdf>
 Package pdftex.def Info: FinalReport_files/figure-latex/fig-3x3-1.pdf  used on 
-input line 298.
+input line 301.
 (pdftex.def)             Requested size: 469.76045pt x 367.97902pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 [6]
-Underfull \hbox (badness 10000) in paragraph at lines 340--341
+Underfull \hbox (badness 10000) in paragraph at lines 343--344
 
  []
 
@@ -677,13 +677,13 @@ Underfull \hbox (badness 10000) in paragraph at lines 340--341
 File: FinalReport_files/figure-latex/c5-1.pdf Graphic file (type pdf)
 <use FinalReport_files/figure-latex/c5-1.pdf>
 Package pdftex.def Info: FinalReport_files/figure-latex/c5-1.pdf  used on input
- line 380.
+ line 383.
 (pdftex.def)             Requested size: 469.74974pt x 373.81493pt.
 <FinalReport_files/figure-latex/c5-2.pdf, id=83, 712.6625pt x 567.11874pt>
 File: FinalReport_files/figure-latex/c5-2.pdf Graphic file (type pdf)
 <use FinalReport_files/figure-latex/c5-2.pdf>
 Package pdftex.def Info: FinalReport_files/figure-latex/c5-2.pdf  used on input
- line 383.
+ line 386.
 (pdftex.def)             Requested size: 469.74974pt x 373.81493pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
@@ -691,11 +691,11 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 [11 <./FinalReport_files/figure-latex/c5-1.pdf>] [12 <./FinalReport_files/figur
 e-latex/c5-2.pdf>] (./FinalReport.aux) ) 
 Here is how much of TeX's memory you used:
- 16425 strings out of 478268
- 270426 string characters out of 5846347
+ 16421 strings out of 478268
+ 270384 string characters out of 5846347
  601245 words of memory out of 5000000
  34210 multiletter control sequences out of 15000+600000
- 547530 words of font info for 153 fonts, out of 8000000 for 9000
+ 547348 words of font info for 151 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  74i,13n,77p,1008b,365s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/usr/local/texlive/2022/texmf-dist/fon
@@ -706,7 +706,7 @@ cal/texlive/2022/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></usr/local/texliv
 e/2022/texmf-dist/fonts/type1/public/lm/lmr12.pfb></usr/local/texlive/2022/texm
 f-dist/fonts/type1/public/lm/lmr17.pfb></usr/local/texlive/2022/texmf-dist/font
 s/type1/public/lm/lmri8.pfb>
-Output written on FinalReport.pdf (12 pages, 235749 bytes).
+Output written on FinalReport.pdf (12 pages, 236046 bytes).
 PDF statistics:
  168 PDF objects out of 1000 (max. 8388607)
  129 compressed objects within 2 object streams
