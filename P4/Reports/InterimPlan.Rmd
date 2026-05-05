@@ -7,15 +7,47 @@ output:
 
 **Introduction**
 
-  Variable selection is a tool widely used when modelling to find parsimonious and predictive models. Many methods are available for variable selection with different use cases, strengths, and weaknesses. Because variable selection may sometimes of use, for example for predictive modelling, it is of interest to investigate how these methods compare with varying correlation structures and sample sizes. For this project, we will compare backwards selection using p-values, AIC, and BIC, as well as lasso and elastic net, using simulated datasets with known correlations between the variables, and performance metrics true and false positives, type I and II error rate of variables selected (using $\alpha$=.05), confidence interval coverage, and bias.
+  Variable selection is a tool widely used when modelling to find parsimonious and predictive models. Many methods are available for variable selection with different use cases, strengths, and weaknesses. Because variable selection may sometimes be of use, for example for predictive modelling, it is of interest to investigate how these methods compare with varying correlation structures and sample sizes. For this project, we will compare backwards selection using p-values, AIC, and BIC, as well as regression using lasso and elastic net, using simulated datasets with known correlations between the variables, and performance metrics including true and false positives, type I and II error rate of variables selected (using $\alpha$=.05), confidence interval coverage, and bias. We want to test whether these methods perform similarly or whether the error rate, bias, and coverage differ across the models, sample sizes, and correlation cases.
   
 **Preliminary Methods**
 
-For each simulation we will generate 6 datasets using the hdrm package, where we have 20 variables in our covariate matrix where 5 have a relationship with the outcome, with known values ranging from .5/3 to 2.5/3 by increments of .5/3. We will test two sample sizes, N = 250 and N = 500, and we will treat the case where the covariates are independent and the case where they have an exchangeable correlation structure, with either $\rho = .35$ or $.7$. We will perform variable selection using \
+We will first investigate choices for $n_{sim}$, the number of simulations, comparing the methods for choosing a sample size for coverage and bias testing simulations presented in Morris 2019. If there is not a definitive choice lower than 10,000 that is acceptable for both bias and coverage methods, we will use 10,000 as it is conventionally used (Morris, 2019).
+
+For each simulation ($n_{sim}=10000$) we will generate 6 datasets using the hdrm package, where we have 20 variables in our covariate matrix where 5 have a relationship with the outcome, with known values ranging from .5/3 to 2.5/3 by increments of .5/3. We will test two sample sizes, N = 250 and N = 500, and we will treat the case where the covariates are independent and the case where they have an exchangeable correlation structure, with either $\rho = .35$ or $.7$. We will perform variable selection using \
 1. P-values using the ols_step_backward_p function from the olsrr package in R, using $\alpha = .15$ as a threshold since this is conventionally used \
 2. AIC using the step() function in R, with the parameter $k$ set to 2 \
 3. BIC using the step() function in R, with the parameter $k$ set to $\log(n)$ where $n$ is the sample size. \
-4. Lasso using the glmnet function from the glmnet package with alpha = 1. We will investigate LASSO using both lambda as the lambda that minimizes the MSE, and the lambda value 1 standard deviation above this value. \
+4. Lasso using the glmnet function from the glmnet package with alpha = 1. We will investigate LASSO using both lambda as the lambda that minimizes the mean cross-validated error, and the lambda value 1 standard deviation above this value. \
 5. Elastic net using the glmnet function with alpha = .5. We Will preliminarily investigate other potential alpha values like .25 and .75 to see sensitivity to this choice. We will again report cases for the two above lambda choices. \
 
-We will refit lm() models using the variables selected for the respective procedures above. Because we know the true values of the beta coefficients and correlation between the outcome and covariates, we can find the number of times that all the truly significant variables were preserved / had a significant p-value in each model, and how often an insignificant variable was included / had a significant p-value in the model.
+For each of 10,000 simulations, we will refit lm() models using the variables selected by the respective procedures above. Because we know the true values of the beta coefficients and correlation between the outcome and covariates, we can find the number of times that all the truly significant variables were preserved / had a significant p-value in each model, and how often an insignificant variable was included / had a significant p-value in the model. We will also calculate the bias of each method for the 5 significant variables, and will also report overall bias for variables that should have a coefficient of 0. We will also report the coverage of the 95% Wald Confidence intervals computed for the lm()s fit by each model for the 5 truly significant variables.
+
+
+
+
+\newpage
+
+**Sources**
+
+Morris TP, White IR, Crowther MJ. Using simulation studies to evaluate statistical methods. Stat Med. 2019 May 20;38(11):2074-2102. doi: 10.1002/sim.8086. Epub 2019 Jan 16. PMID: 30652356; PMCID: PMC6492164.
+
+
+
+
+# What proportion of true variables are in the model?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

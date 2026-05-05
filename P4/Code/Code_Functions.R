@@ -1,3 +1,7 @@
+library(hdrm)
+library(olsrr)
+
+
 #set that seed yo!
 set.seed(23192319)
 
@@ -43,10 +47,13 @@ selection_diag <- function(model, true_var, true_coef, X, y, method, case) {
   new_model <- lm(y ~ ., data = df)
   #refit model with selected variables
   #new_model <- lm(y ~ new_X)
+  tidy_model <- tidy(new_model)
+  sig_var   <- tidy_model[tidy_model$p.value < .05 & tidy_model$term != "(Intercept)",]$term 
   
   #instantiate biases and coverage
   bias <- rep(0, length(true_var))
   coverage <- rep(0, length(true_var))
+  type2 <- rep(0, length(true_var))
   for (i in 1: length(true_var)) {
     #calculate bias and coverage for each true_var item
     if (true_var[i] %in% select_var)
@@ -55,30 +62,45 @@ selection_diag <- function(model, true_var, true_coef, X, y, method, case) {
       coverage[i] = as.numeric( (true_coef[i] >= confint(new_model)[true_var[i],][1]) & 
                                   (true_coef[i] <= confint(new_model)[true_var[i],][2]))
     }
+    
     else {
       bias[i] = -true_coef[i] # in the case that the true variable is not in the model, we treat the new model's fitted coefficient as 0
       # coverage stays 0 because our confidence interval only contains 0.
     }
+    if(!(true_var %in% sig_var)) {
+      type2[i]=1
+    }
+
   }
-  tidy_model <- broom::tidy(new_model)
-  sig_var   <- tidy_model[tidy_model$p.value < .05 & tidy_model$term != "(Intercept)",]$term 
-  
+ 
   if (all(true_var %in% select_var)) { 
     trueP = 1
   }
   if (any(!(select_var %in% true_var))) { 
     falseP = 1
   }
-  if (!all(true_var %in% sig_var)) {
-    type2 = 1
-  }
+
   if(!all(sig_var %in% true_var)) {
-    type1 = 1
+    type1 = length(setdiff(sig_var, true_var)
   }
+  
+  type1_var <- setdiff(select_var, true_var)
+  
+  type1_var_bias <- 0
+  
+  if (length(type1_var) != 0){
+  
+  for (i in 1:length(type1_var)) {
+    type1_var_bias = type1_var_bias + tidy_model[tidy_model$term == type1_var[i],]$estimate
+      
+  }
+  type1_var_bias = type1_var_bias / 15
+  }
+  
   
   results <- data.frame(var = true_var, bias = bias, coverage = coverage,
                         type1 = type1, type2 = type2, trueP = trueP, falseP = falseP,
-                        method = method, case = case)
+                        method = method, case = case, VE = type1_var_bias)
   
   return(results)
   
@@ -101,7 +123,7 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
     rho = rho
   )
   df <- as.data.frame(cbind(y = simdat$y, simdat$X))
-  lm_mod <- lm(y ~ ., data = df1)
+  lm_mod <- lm(y ~ ., data = df)
 
   #perform variable selection
   
@@ -109,7 +131,7 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
 #takes lm object
   p_model_run <- ols_step_backward_p(
     model = lm_mod,
-    p_val = 0.15,
+    p_val = 0.1,
     include = NULL,
     exclude = NULL,
     hierarchical = FALSE,
@@ -118,9 +140,9 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
   )
   p_model <- p_model_run$model
   
-  AIC_model <- step(object=lm_mod1, method="backward", k=2)
+  AIC_model <- step(object=lm_mod, method="backward", k=2, trace = 0)
   
-  BIC_model <- step(object=lm_mod, method="backward", k=log(nrow(df)))
+  BIC_model <- step(object=lm_mod, method="backward", k=log(nrow(df)), trace = 0)
   
   cv_lasso <- cv.glmnet(x=simdat$X, y=simdat$y, alpha = 1)
   
@@ -135,7 +157,8 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
   enet_model2 <- glmnet(x=simdat$X, y=simdat$y, alpha = .5, lambda = cv_enet$lambda.min)
   
 
-  sim_results <- rbind(sim_results, selection_diag(
+  sim_results <- rbind(sim_results, 
+    selection_diag(
     model=p_model,
     true_var=true_var,
     true_coef = true_coef,
@@ -143,9 +166,8 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
     y=simdat$y,
     method="P-Value",
     case = case
-  ))
-  
-  sim_results <- rbind(sim_results, selection_diag(
+  ), 
+  selection_diag(
     model=AIC_model,
     true_var=true_var,
     true_coef = true_coef,
@@ -153,9 +175,8 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
     y=simdat$y,
     method="AIC",
     case = case
-  ))
-  
-  sim_results <- rbind(sim_results, selection_diag(
+  ), 
+  selection_diag(
     model=BIC_model,
     true_var=true_var,
     true_coef = true_coef,
@@ -163,9 +184,8 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
     y=simdat$y,
     method="BIC",
     case = case
-  ))
-  
-  sim_results <- rbind(sim_results, selection_diag(
+  ), 
+  selection_diag(
     model=lasso_model1,
     true_var=true_var,
     true_coef = true_coef,
@@ -173,9 +193,8 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
     y=simdat$y,
     method="LASSO1",
     case = case
-  ))
-  
-  sim_results <- rbind(sim_results, selection_diag(
+  ), 
+  selection_diag(
     model=lasso_model2,
     true_var=true_var,
     true_coef = true_coef,
@@ -183,9 +202,8 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
     y=simdat$y,
     method="LASSO2",
     case = case
-  ))
-  
-  sim_results <- rbind(sim_results, selection_diag(
+  ),
+  selection_diag(
     model=enet_model1,
     true_var=true_var,
     true_coef = true_coef,
@@ -193,9 +211,8 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
     y=simdat$y,
     method="ENET1",
     case = case
-  ))
-  
-  sim_results <- rbind(sim_results, selection_diag(
+  ),
+  selection_diag(
     model=enet_model2,
     true_var=true_var,
     true_coef = true_coef,
@@ -208,9 +225,11 @@ selection_simulation <- function(n,p,p1,beta,corr,rho, case) {
 }
   
 
-
+system.time( { 
 #Run the simulation
-for (i in 1:10) {
+for (i in 1:10000) {
+  print(i)
+  
   # simdat1 <-gen_data(
   #   n=250,
   #   p=20,
@@ -222,69 +241,85 @@ for (i in 1:10) {
   #   rho = c(0)
   # )
   sim_results <- rbind(sim_results,
-                       selection_simulation(n=250,p=20,p1=5,
+                      
+   selection_simulation(n=250,p=20,p1=5,
                        beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
-  rho=0, case = "1a"))
+                       rho=0, case = "1a"),
+  
+  selection_simulation(n=250,p=20,p1=5,
+                       beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                       rho=.35, case = "1b"),
+  
+  selection_simulation(n=250,p=20,p1=5,
+                       beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                       rho=.7, case = "1c"),
+  
+  selection_simulation(n=500,p=20,p1=5,
+                       beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                       rho=0, case = "2a"),
+  
+  selection_simulation(n=500,p=20,p1=5,
+                       beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                       rho=0, case = "2b"),
+  
+  selection_simulation(n=500,p=20,p1=5,
+                       beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                       rho=0, case = "2c"))
 }
-# Perform selection using 
-
-#F-tests and p-values (automated)
-#library(StepReg)
-#AIC
-#BIC
-
-#Choose 2 different choices for lambda
-  #alpha=1 LASSO
-  #alpha %in% (0,1) is elastic net
-#lasso
-  ## LASSO used extensively in high-dimensional problems...
-#elastic net
-
-
-  
-# simulation chunk
-  #generate 6 datasets
-  #run function on each dataset
-  #add metrics to list
   
   
-# summarize metrics
+})
 
+#############
+# SUMMARIES #
+#############
 
-# Summarize your findings in terms of true positives 
-# (what percentage of the time are variables X1 - X5 in the final model) 
-# and false positive rates (confusion matrix is another name for this). 
-# In other words, how often does your final model include any of the 15 variables 
-# that are not associated with the outcome and how often does your final model include each of the 5 variables with a known relationship with Y. 
-# For the variables that are retained in the model, what is the bias of the parameter estimates,
-# what is the coverage of the 95% CI, and what is the type I and II error of the variables selected.  
+sim_results01 <- data.frame(var = NULL, bias = NULL, coverage = NULL,
+                            type1 = NULL, type2 = NULL, trueP = NULL, falseP = NULL,
+                            method = NULL, case = NULL)
+for (i in 1:100) {
+  print(i)
   
-# Type 1: 
-# how often does the model
-# For the variables retained, you can do testing on the final model 
-# (in other words refit the final model like no model selection was done) 
-# or propose an alternative approach to testing since we believe there is bias in just fitting the final model like there was no variable selection done.
-
-
-
-# Questions for Carter:
+  # simdat1 <-gen_data(
+  #   n=250,
+  #   p=20,
+  #   p1 = 5,
+  #   beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),
+  #   family = "gaussian",
+  #   SNR = 1,
+  #   signal = "homogeneous",
+  #   rho = c(0)
+  # )
   
-  #Type I and Type II error -  variable specific?
-  #Should the confusion matrix be variable specific
-  #What is the difference between doing this and the confusion matrix?
-  #coverage - variable specific
-  #Choosing alpha for elastic net... leave it at .5... can choose others 
+
   
   
-  #This is a report to a clinician.
-  
-  
-  #Two lasso lambda's: the estimate that minimizes the mse and the lambda 1 standard deviation higher than this one.
-  
-  # is parameter significant in simulation
-  # refit lm with the variables selected from each procedure
-  # find bias of estimates, errors, coverage...
-  # percentage of coverage for each variable
+  sim_results01 <- rbind(sim_results01,
+                       
+                       selection_simulation(n=250,p=20,p1=5,
+                                            beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                                            rho=0, case = "1a"),
+                       
+                       selection_simulation(n=250,p=20,p1=5,
+                                            beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                                            rho=.35, case = "1b"),
+                       
+                       selection_simulation(n=250,p=20,p1=5,
+                                            beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                                            rho=.7, case = "1c"),
+                       
+                       selection_simulation(n=500,p=20,p1=5,
+                                            beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                                            rho=0, case = "2a"),
+                       
+                       selection_simulation(n=500,p=20,p1=5,
+                                            beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                                            rho=.35, case = "2b"),
+                       
+                       selection_simulation(n=500,p=20,p1=5,
+                                            beta = c(.5/3,1/3,1.5/3,2/3,2.5/3, rep(0, 15)),corr="exchangeable",
+                                            rho=.7, case = "2c"))
+}
 
 
 
@@ -292,5 +327,120 @@ for (i in 1:10) {
 
 
 
+library(doParallel)
+library(foreach)
+library(doRNG)
+
+# Set up cluster - leave 1-2 cores free for your OS
+n_cores <- detectCores() - 1
+library(doSNOW)
+cl <- makeCluster(n_cores)
+registerDoSNOW(cl)
+pb <- txtProgressBar(max=10000, style=3)
+progress <- function(n) setTxtProgressBar(pb, n)
+opts <- list(progress=progress)
+#registerDoParallel(cl)
+
+beta_vec <- c(.5/3, 1/3, 1.5/3, 2/3, 2.5/3, rep(0, 15))
+set.seed(23192319)
+sim_results <- foreach(i = 1:10000, 
+                       .combine = rbind, 
+                       .export = c("selection_simulation", "selection_diag"),
+                       .packages = c("hdrm", "olsrr","dplyr","glmnet"),
+                       .options.snow = opts
+                       ) %dopar% {
+                         rbind(
+                           selection_simulation(n=250, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=0,   case="1a"),
+                           selection_simulation(n=250, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.35, case="1b"),
+                           selection_simulation(n=250, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.7,  case="1c"),
+                           selection_simulation(n=500, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=0,   case="2a"),
+                           selection_simulation(n=500, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.35,   case="2b"),
+                           selection_simulation(n=500, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.7,   case="2c")
+                         )
+                       }
+
+stopCluster(cl)
+
+
+
+
+old_pkgs <- list.dirs("/Library/Frameworks/R.framework/Versions/4.6/Resources/library_old", 
+                      recursive = FALSE, full.names = FALSE)
+
+# Remove base packages (already installed with R)
+base_pkgs <- rownames(installed.packages(priority = "base"))
+recommended_pkgs <- rownames(installed.packages(priority = "recommended"))
+to_install <- setdiff(old_pkgs, c(base_pkgs, recommended_pkgs))
+
+install.packages(to_install)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+library(hdrm)
+library(doSNOW)
+library(foreach)
+library(doRNG)
+
+# Setup
+true_var  <- c("V01", "V02", "V03", "V04", "V05")
+true_coef <- seq(.5/3, 2.5/3, .5/3)
+beta_vec  <- c(.5/3, 1/3, 1.5/3, 2/3, 2.5/3, rep(0, 15))
+
+n_cores <- detectCores() - 2
+cl <- makeCluster(n_cores)
+registerDoSNOW(cl)
+
+pb <- txtProgressBar(min=0, max=10000, style=3)
+progress <- function(n) setTxtProgressBar(pb, n)
+opts <- list(progress = progress)
+
+system.time({
+  set.seed(23192319)
+  sim_results <- foreach(i = 1:10000,
+                         .combine = rbind,
+                         .packages = c("hdrm", "glmnet", "olsrr", "broom"),
+                         .export  = c("selection_simulation", "selection_diag",
+                                      "true_var", "true_coef"),
+                         .options.snow = opts) %dorng% {
+                           rbind(
+                             selection_simulation(n=250, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=0,   case="1a"),
+                             selection_simulation(n=250, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.35, case="1b"),
+                             selection_simulation(n=250, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.7,  case="1c"),
+                             selection_simulation(n=500, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=0,   case="2a"),
+                             selection_simulation(n=500, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.35,   case="2b"),
+                             selection_simulation(n=500, p=20, p1=5, beta=beta_vec, corr="exchangeable", rho=.7,   case="2c")
+                           )
+                         }
+})
+
+close(pb)
+stopCluster(cl)
+
+
+system.time(
+  selection_simulation(n=250, p=20, p1=5, beta=beta_vec, 
+                       corr="exchangeable", rho=0, case="1a")
+)
 
 
