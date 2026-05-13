@@ -1,0 +1,85 @@
+---
+title: "FinalReport"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+```{r callsrc, echo=FALSE,warning=FALSE, message=FALSE}
+source("~/Documents/GitHub/BIOS6624/P4/Code/Code_Results.R")
+```
+
+# Introduction
+
+  Variable selection is a tool widely used when modelling to find parsimonious and predictive models. Many methods are available for variable selection with different use cases, strengths, and weaknesses. Because variable selection may sometimes be of use, for example for predictive modelling, it is of interest to investigate how these methods compare with varying correlation structures and sample sizes. For this project, we will compare backwards selection using p-values, AIC, and BIC, as well as regression using LASSO and elastic net, using simulated datasets with known correlations between the variables, and performance metrics including true and false positive rates, type I and II error rates of variables selected (using $\alpha$=.05), confidence interval coverage, and bias. We want to test whether these methods perform similarly or whether the error rate, bias, and coverage differ across the models, with 2 sample size cases, and 3 correlation structure cases.
+
+# Methods
+
+Describe the simulation flow
+
+We are comparing 7 methods for variable selection. Backwards selection using p-values with $\alpha = .05$ removes variables one model fit at a time, removing the term with the highest p-value until all included terms have $p< \alpha$, a threshold set by the user. Backwards selection using AIC or BIC perform similarly, stopping once a model's AIC or BIC is not improved (decreased) by the exclusion of an additional variable. We also implemented LASSO (Least Absolute Shrinkage and Selection Operator) regression which shrinks unnecessary or non-predictive coefficients towards zero. We considered two penalty term options, either the $\lambda_{min}$ such that $\lambda_{min}$ minimizes the mean cross-validated error, and the $\lambda_1$ value 1 standard deviation larger than $\lambda_{min}$. These two choices are conventionally used, since the 1 standard error case provides a parsimonious model with error no more than 1 standard error that of $\lambda_{min}$ model, since minimizing the error may lead to overfitting (Krstajic 2014). We used these same $\lambda$ options for elastic-net, which we implemented using $\alpha = .5$, because we wanted to implement elastic net as distinctively from ridge regression ($\alpha=0$) and LASSO ($\alpha = 1$) as possible. The p-value method was implemented using the  ols_step_backward_p() function in the olsrr package in R, AIC and BIC using the step() function with k=2 and k= log($n$)
+respectively, and the LASSO and E-net methods were implemented using the above described parameters. All models were fit with an intercept term, but it was not considered in results comparisons.
+```{r methods_sum_table}
+
+methods_matrix <- matrix(c(
+  "P-values", "ols_step_backward_p()", "olsrr", "p=.1",
+  "AIC", "step()", "", "k=2",
+  "BIC", "step()", "", "k = log(n)",
+  "LASSO", "glmnet, cv.glmnet", "glmnet", "lambda = lambda.min, alpha = 1",
+    "LASSO", "glmnet, cv.glmnet", "glmnet", "lambda = lambda.1se, alpha = 1",
+    "E-net", "glmnet, cv.glmnet", "glmnet", "lambda = lambda.min, alpha = .5",
+  "Enet", "glmnet, cv.glmnet", "glmnet", "lambda = lambda.1.se, alpha = .5"), ncol = 4, byrow = TRUE)
+colnames(methods_matrix) <- c("Method", "Functions", "Package", "Parameters")
+kable(methods_matrix, caption = "Summary of methods compared")         
+```
+Because we were interested in both coverage and bias in our simulations, we used two approaches from Morris 2019 to calculate needed $n_{sim}$ based on these two measures. Attempting these two methods provided divergent results, so we chose to use $n_{sim} = $ 10000 to ensure adequate power, as this benchmark is often used and recommended (Morris 2019).
+For each iteration, we generated 6 datasets using the hdrm package in R, with sample sizes 250 and 500, as well as exchangeable correlation structure within the design matrix with $\rho = 0$ (no correlation), $\rho = .35$, and $\rho = .7$. For each dataset, 5 of the 20 variables in the design matrix had a true association with the outcome vector $y$, with true coefficients for variables $V_1,V_2,V_3,V_4,V_5$ as 1/6,1/3,1/2,2/3, and 5/6 respectively. With the exchangeable correlation structure, $V_1$ through $V_20$ are assumed to have a between-variable correlation of $\rho$, and sampled accordingly. We then performed variable selection for each of the 6 cases using the 7 described methods. Multiple linear regression models using least squares were refit in R for $y$ regressed on the selected variables from each method. From these refit models, we retained information on the bias and coverage of the coefficients vs. their true values, the amount of times that the models included $V_1$ through $V_5$, the variables with true associations, the amount of times the models included $V_6$ through $V_{20}$ (the null variable group), and how often type 1 and type 2 errors were committed. Bias was measured as the average difference between the coefficient estimate and the true coefficient specified above, with the true coefficient for $V_6$ through $V_{20}$ equal to 0. For the true effect variables, coverage was defined as the proportion of iterations where the model's Wald CI for the estimate of interest included the true effect. If a true effect variable was not included in the model, the variable was treated as having estimate 0 with a confidence interval only containing 0. The true positive rate (TPR) and false positive rate (FPR) were reported at the model level; a model with $V1$ through $V_5$ included in the model was a true positive case, and a model with at least one of the variables $V_6$ through $V_{20}$ was a false positive. We calculated type 1 error rates two ways. The first way was at the model level, e.g., how often was at least one variable in the null group included in the regression model with a significant p-value (using $\alpha = .5$ as a threshold since this is often used in medical studies) and also as the average number of type 1 errors committed by a modelling approach for a given case. Similarly, we investigated type 2 error at the model level and reported the average number of type 2 errors committed by modelling approach and case. Reporting the number of errors per model allows us to compare approaches at a more granular level since, for example, there is a difference between a model with 3 insignificant variables included and a model with 1, though both would be reported analogously at the model level. We also investigated type 2 error rates for the individual variables since we had a range of coefficient strengths across $V_1$ through $V_5$. Reporting these measures this way allows us to understand model patterns more robustly since we can look at trends at both the model level and variable level. Both type 1 and type 2 error rates are handled as though no model selection had been done, which will inflate type 1 error rates and underestimate standard error (Shen 2024). Since this naive approach is often used in practice, it is beneficial to see how methods compare in this context. Simulation procedure was parallelized using doRNG package in R, and we used seed 23192319 to ensure reproducible results. Code for simulating the data and producing tables and plots is available at https://github.com/jkebe2002/BIOS6624/tree/9c435c37471509d45ecdb37552575dbf7bd10cd7/P4.
+
+How did you handle the intercept term?
+
+How is the data generated
+What metrics are you interested in
+How were they calculated
+
+
+
+# Results
+
+
+Comment on coverage, bias of different variables 
+coverage bias for different cases / methods
+
+MENTION BIAS OF THE NULL VARIABLES!
+
+FP,TP error rates
+Secondary table of error rates by varibles
+```{r heatmapts, fig.width=7, fig.height=6, out.width="100%"}
+library(patchwork)
+(p_trueP | p_falseP) / (p_type1_m | p_type2_m) / (p_type1 | p_type2) 
+```
+
+
+```{r type2plot,echo=FALSE}
+type2plot
+```
+
+Plots?
+\newpage
+```{r ch2, results='asis', warning=FALSE, message=FALSE, echo = FALSE}
+make_combined_table(sim_prepped)
+```
+
+```{r null_bias, warning=FALSE, message=FALSE, echo = FALSE, fig.cap="average bias and coverage for null variables"}
+ve_coverage_table
+```
+\newpage
+
+# Conclusion
+
+Summarize, next steps
+
+# SOurces
+
+https://academic.oup.com/biometrics/article/80/3/ujae101/7758501?login=true
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC3994246/

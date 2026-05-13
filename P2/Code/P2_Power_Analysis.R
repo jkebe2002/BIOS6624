@@ -161,3 +161,133 @@ for (col in names(results_display2)[-1]) {
     as.character(results_display2[[col]])
   )
 }
+
+
+# Perform selection using 
+
+#F-tests and p-values (automated)
+#library(StepReg)
+#AIC
+#BIC
+
+#Choose 2 different choices for lambda
+#alpha=1 LASSO
+#alpha %in% (0,1) is elastic net
+#lasso
+## LASSO used extensively in high-dimensional problems...
+#elastic net
+
+
+
+# simulation chunk
+#generate 6 datasets
+#run function on each dataset
+#add metrics to list
+
+
+# summarize metrics
+
+
+# Summarize your findings in terms of true positives 
+# (what percentage of the time are variables X1 - X5 in the final model) 
+# and false positive rates (confusion matrix is another name for this). 
+# In other words, how often does your final model include any of the 15 variables 
+# that are not associated with the outcome and how often does your final model include each of the 5 variables with a known relationship with Y. 
+# For the variables that are retained in the model, what is the bias of the parameter estimates,
+# what is the coverage of the 95% CI, and what is the type I and II error of the variables selected.  
+
+# Type 1: 
+# how often does the model
+# For the variables retained, you can do testing on the final model 
+# (in other words refit the final model like no model selection was done) 
+# or propose an alternative approach to testing since we believe there is bias in just fitting the final model like there was no variable selection done.
+
+
+
+# Questions for Carter:
+
+#Type I and Type II error -  variable specific?
+#Should the confusion matrix be variable specific
+#What is the difference between doing this and the confusion matrix?
+#coverage - variable specific
+#Choosing alpha for elastic net... leave it at .5... can choose others 
+
+
+#This is a report to a clinician.
+
+
+#Two lasso lambda's: the estimate that minimizes the mse and the lambda 1 standard deviation higher than this one.
+
+# is parameter significant in simulation
+# refit lm with the variables selected from each procedure
+# find bias of estimates, errors, coverage...
+# percentage of coverage for each variable
+
+
+
+
+
+
+
+# Perform selection using 
+
+#F-tests and p-values (automated)
+#library(StepReg)
+#AIC
+#BIC
+
+#Choose 2 different choices for lambda
+#alpha=1 LASSO
+#alpha %in% (0,1) is elastic net
+#lasso
+## LASSO used extensively in high-dimensional problems...
+#elastic net
+
+
+
+# simulation chunk
+#generate 6 datasets
+#run function on each dataset
+#add metrics to list
+
+
+# summarize metrics
+
+
+# Summarize your findings in terms of true positives 
+# (what percentage of the time are variables X1 - X5 in the final model) 
+# and false positive rates (confusion matrix is another name for this). 
+# In other words, how often does your final model include any of the 15 variables 
+# that are not associated with the outcome and how often does your final model include each of the 5 variables with a known relationship with Y. 
+# For the variables that are retained in the model, what is the bias of the parameter estimates,
+# what is the coverage of the 95% CI, and what is the type I and II error of the variables selected.  
+
+# Type 1: 
+# how often does the model
+# For the variables retained, you can do testing on the final model 
+# (in other words refit the final model like no model selection was done) 
+# or propose an alternative approach to testing since we believe there is bias in just fitting the final model like there was no variable selection done.
+
+
+
+# Questions for Carter:
+
+#Type I and Type II error -  variable specific?
+#Should the confusion matrix be variable specific
+#What is the difference between doing this and the confusion matrix?
+#coverage - variable specific
+#Choosing alpha for elastic net... leave it at .5... can choose others 
+
+
+#This is a report to a clinician.
+
+
+#Two lasso lambda's: the estimate that minimizes the mse and the lambda 1 standard deviation higher than this one.
+
+# is parameter significant in simulation
+# refit lm with the variables selected from each procedure
+# find bias of estimates, errors, coverage...
+# percentage of coverage for each variable
+
+
+
