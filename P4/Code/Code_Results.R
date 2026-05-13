@@ -349,7 +349,7 @@ ve_coverage_table <- sim_results |>
   ) |>
   distinct(sim_id, method, case_label, .keep_all = TRUE) |>
   summarise(
-    VE       = round(mean(VE, na.rm = TRUE), 3),
+    VE       = -round(mean(VE, na.rm = TRUE), 3),
     coverage = round(1 - (sum(type1, na.rm = TRUE) / (n() * 15)), 3),
     .by = c(method, case_label)
   ) |>
@@ -367,7 +367,7 @@ library(gt)
 ###################################################
 # Bias and coverage table for variables 6 thru 20 #
 ###################################################
-ve_coverage_table |>
+ve_coverage_table <- ve_coverage_table |>
   gt() |>
   tab_spanner(
     label   = "N = 250",
@@ -387,7 +387,7 @@ ve_coverage_table |>
     `N=500, rho=0.7`  = md("rho = 0.70")
   ) |>
   tab_source_note(
-    source_note = "Values reported as Bias (Coverage). Bias is the average coefficient estimate for null variables retained in the model (true value = 0). Coverage is calculated as 1 − (Type I error rate)."
+    source_note = "Values reported as Bias (Coverage). Bias is the average coefficient estimate for null variables retained in the model (true value = 0). Coverage is calculated as 1 - (Type I error rate)."
   ) |>
   tab_options(
     table.font.names        = "Times New Roman",
@@ -400,5 +400,5 @@ ve_coverage_table |>
     table.border.bottom.width = px(2),
     column_labels.border.bottom.style = "solid",
     column_labels.border.bottom.width = px(1)
-  )
+  ) |> tab_caption(caption = "Average bias and coverage for null variables")
 
