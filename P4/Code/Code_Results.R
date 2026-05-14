@@ -5,7 +5,7 @@
 # Thank you!                                                                      #
 ###################################################################################
 
-sim_results <- read.csv("~/Documents/GitHub/BIOS6624/P4/sim_results.csv")
+#sim_results <- read.csv("~/Documents/GitHub/BIOS6624/P4/sim_results.csv")
 library(dplyr)
 library(ggplot2)
 

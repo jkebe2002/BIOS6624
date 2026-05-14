@@ -1,12 +1,20 @@
+##############################################################################
+# Run this program first to perform simulation and pull dataframe of results #
+##############################################################################
+
+
 library(hdrm)
 library(olsrr)
 library(glmnet)
 library(broom)
 library(dplyr)
-
+library(parallel)
 
 #set that seed yo!
 set.seed(23192319)
+
+#number of simulations
+n_sim <- 5
 
 #dataframe for study results!
 sim_results <- data.frame(var = NULL, bias = NULL, coverage = NULL,
@@ -258,7 +266,7 @@ opts <- list(progress = progress)
 
 system.time({
   set.seed(23192319)
-  sim_results <- foreach(i = 1:10000,
+  sim_results <- foreach(i = 1:n_sim,
                          .combine = rbind,
                          .packages = c("hdrm", "glmnet", "olsrr", "broom"),
                          .export  = c("selection_simulation", "selection_diag",
